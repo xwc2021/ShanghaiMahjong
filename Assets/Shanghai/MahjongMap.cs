@@ -2,11 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EditOperation { Use,NotUse, Reverse }
+
 public class MahjongMap : MonoBehaviour {
 
     public static float xUnit = 1.0f;
     public static float yUnit = 1.5f;
     public static float heightUnit = 0.5f;
+
+    [SerializeField]
+    EditOperation operation= EditOperation.Use;
+    public EditOperation GetOperation() { return operation; }
+
+    public delegate void FuncPtr(MapNode node);
+    public void DoOperation(MapNode node, FuncPtr func) {
+        func(node);
+    }
 
     [SerializeField]
     int addCountX = 1;
@@ -164,7 +175,7 @@ public class MahjongMap : MonoBehaviour {
         return true;
     }
 
-    public void ToggleNode(MapNode node)
+    public void ReverseNode(MapNode node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -174,6 +185,24 @@ public class MahjongMap : MonoBehaviour {
             node.SetIsUse(false);
         else
             node.SetIsUse(true);
+    }
+
+    public void UseNode(MapNode node)
+    {
+        bool canUse = IsCanUse(node);
+        if (!canUse)
+            return;
+
+        node.SetIsUse(true);
+    }
+
+    public void NotUseNode(MapNode node)
+    {
+        bool canUse = IsCanUse(node);
+        if (!canUse)
+            return;
+
+        node.SetIsUse(false);
     }
 
     MapNode GetMapNode()

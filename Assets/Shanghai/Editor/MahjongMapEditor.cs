@@ -66,16 +66,35 @@ public class MahjongMapEditor : UnityEditor.Editor
         if (!isHit)
             return;
 
+        var funptr = DoWhat();
         for (var y = 0; y < mahjongMap.GetAddCountY(); ++y) {
             for (var x = 0; x < mahjongMap.GetAddCountX(); ++x){
                 var node = mahjongMap.GetNode(nowFloor, nowY+2*y, nowX+ 2 * x);
                 if (node == null)
                     continue;
    
-                mahjongMap.ToggleNode(node);
+                mahjongMap.DoOperation(node,funptr);
             }
         }
         
+    }
+
+    MahjongMap.FuncPtr DoWhat()
+    {
+        MahjongMap.FuncPtr funptr;
+        switch (mahjongMap.GetOperation())
+        {
+            case EditOperation.Use:
+                funptr = mahjongMap.UseNode;
+                break;
+            case EditOperation.NotUse:
+                funptr = mahjongMap.NotUseNode;
+                break;
+            default:
+                funptr = mahjongMap.ReverseNode;
+                break;
+        }
+        return funptr;
     }
 
     void GetRay(Vector3 mousePos, out Vector3 from, out Vector3 clickWorldPoint, out Vector3  normalDir) {
