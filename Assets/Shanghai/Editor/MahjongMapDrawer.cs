@@ -9,6 +9,8 @@ public class MahjongMapDrawer
     static Color OddPointColor = Color.green;
     static Color ClickPointColor = Color.red;
     static Color HitPointColor = Color.yellow;
+    static float DebugHitR = 0.05f;
+
 
     [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
     static void DrawGizmoFor(MahjongMap target, GizmoType gizmoType)
@@ -19,12 +21,12 @@ public class MahjongMapDrawer
         //畫Ray
         Gizmos.color = ClickPointColor;
         var clickPointOnRay = target.GetClickPointOnRay();
-        Gizmos.DrawSphere(clickPointOnRay, 0.1f);
+        Gizmos.DrawSphere(clickPointOnRay, DebugHitR);
         Gizmos.DrawLine(clickPointOnRay, clickPointOnRay - target.GetClickNormalDir() * 10);
 
         //畫HitPoint
         Gizmos.color = HitPointColor;
-        Gizmos.DrawSphere(target.GetHitPoint(),0.1f);
+        Gizmos.DrawSphere(target.GetHitPoint(), DebugHitR);
     }
 
     static void DrawGrid(MahjongMap target)
@@ -63,7 +65,7 @@ public class MahjongMapDrawer
         var offsetX = 0.5f * Vector3.right * MahjongMap.xUnit;
         var offsetY = 0.5f * Vector3.forward * MahjongMap.yUnit;
         var offsetXY = offsetX + offsetY;
-        var r = 0.1f;
+        
         var nowFloorIndex = target.GetNowFloorIndex();
         if (!target.IsValidatedFloorIndex(nowFloorIndex))
             return;
@@ -75,7 +77,7 @@ public class MahjongMapDrawer
             for (var x = 0; x < CountX; ++x)
             {
                 ChoseColor(target, nowFloorIndex,y, x);
-                Gizmos.DrawSphere(from, r);
+                Gizmos.DrawSphere(from, MapNode.HitRangeRadius);
                 from = from + offsetX;
             }
         }

@@ -28,7 +28,7 @@ public class MahjongMap : MonoBehaviour {
         var original = transform.position;
         var offsetX = 0.5f * Vector3.right * MahjongMap.xUnit;
         var offsetY = 0.5f * Vector3.forward * MahjongMap.yUnit;
-        var offsetFloor = 0.5f * Vector3.up * MahjongMap.heightUnit;
+        var offsetFloor =  Vector3.up * MahjongMap.heightUnit;
         var offsetXY = offsetX + offsetY;
         for (var f = 0; f < Floor; ++f) {
             for (var y = 0; y < CountY(); ++y){
@@ -55,7 +55,7 @@ public class MahjongMap : MonoBehaviour {
             return false;
 
         var index = ReMap(floorIndex, y, x);
-        return map3D[index].isUse;
+        return map3D[index].IsUse();
     }
 
     [SerializeField]
@@ -74,6 +74,8 @@ public class MahjongMap : MonoBehaviour {
             nowFloorIndex = newIndex;
     }
     public bool IsValidatedFloorIndex(int index) { return index >= 0 && index < Floor; }
+    public bool IsValidatedX(int x) { return x >= 0 && x < CountX(); }
+    public bool IsValidatedY(int y) { return y >= 0 && y < CountY(); }
 
     public int GetX() { return X; }
     public int GetY() { return Y; }
@@ -94,6 +96,7 @@ public class MahjongMap : MonoBehaviour {
 
     Vector3 hitPoint;
     public Vector3 GetHitPoint() { return hitPoint; }
+
     public void AddOne(Vector3 from ,Vector3 dir)
     {
         bool hit = GeometryTool.RayHitPlane(from, dir, Vector3.up, transform.position+ GetNowFlowerHeight(), out hitPoint);
@@ -101,6 +104,33 @@ public class MahjongMap : MonoBehaviour {
         if (!hit)
             return;
 
-        Debug.Log(hitPoint);
+        //Debug.Log(hitPoint);
+        var node=GetMapNode();
+        if (node == null)
+            return;
+
+        bool hitSphere = node.IsHit(hitPoint);
+        if (hitSphere)
+            node.SetIsUse(true);
+    }
+
+    MapNode GetMapNode()
+    {
+        var offsetX = 0.25f * Vector3.right * MahjongMap.xUnit;
+        var offsetY = 0.25f * Vector3.forward * MahjongMap.yUnit;
+        var refPoint = transform.position + offsetX + offsetY;
+
+        var diff = (hitPoint - refPoint);
+        var halfXUnit = 0.5 * MahjongMap.xUnit;
+        var halfYUnit = 0.5 * MahjongMap.yUnit;
+        var x = (int)((diff.x-(diff.x % halfXUnit))/ halfXUnit);
+        var y = (int)((diff.z-(diff.z % halfYUnit))/ halfYUnit);
+
+        if (IsValidatedX(x) && IsValidatedY(y))
+        {
+            var index = ReMap(nowFloorIndex, y, x);
+            return map3D[index];
+        }
+        return null;
     }
 }

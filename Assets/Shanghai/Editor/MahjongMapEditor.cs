@@ -42,6 +42,7 @@ public class MahjongMapEditor : UnityEditor.Editor
             if (Event.current.button == 1)//right button
             {
                 ShootRay(Event.current.mousePosition);
+                SceneView.RepaintAll();
             }
         }
     }
@@ -59,7 +60,7 @@ public class MahjongMapEditor : UnityEditor.Editor
         mahjongMap.SetClickPointOnRay(clickWorldPoint);
         mahjongMap.SetClickNormalDir(normalDir);
 
-        //因為mahjongMap的原點在(0,0,0)也沒有旋轉，所以不作座標變換
+        //mahjongMap的平面朝向是固定的，所以不作座標變換
         mahjongMap.AddOne(from, normalDir);
     }
 }
