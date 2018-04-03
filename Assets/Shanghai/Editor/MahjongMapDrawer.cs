@@ -10,6 +10,7 @@ public class MahjongMapDrawer
     static Color ClickPointColor = Color.red;
     static Color HitPointColor = Color.yellow;
     static float DebugHitR = 0.05f;
+    static float PointR = 0.025f;
 
 
     [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
@@ -77,7 +78,7 @@ public class MahjongMapDrawer
             for (var x = 0; x < CountX; ++x)
             {
                 ChoseColor(target, nowFloorIndex,y, x);
-                Gizmos.DrawSphere(from, MapNode.HitRangeRadius);
+                Gizmos.DrawSphere(from, PointR);
                 from = from + offsetX;
             }
         }

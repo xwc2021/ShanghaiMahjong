@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class MapNode : MonoBehaviour {
 
-    public static float HitRangeRadius = 0.15f;
+    public static float HitRangeRadius = 0.2f;
+
+    [SerializeField]
+    MeshRenderer meshRenderer;
 
     [SerializeField]
     bool isUse = false;
 
     public bool IsUse() { return isUse; }
-    public void SetIsUse(bool b) { isUse = b; }
+    public void SetIsUse(bool b) { isUse = b; meshRenderer.enabled = b; }
 
     public int x;
     public int y;
@@ -21,6 +24,7 @@ public class MapNode : MonoBehaviour {
         this.y = y;
         this.x = x;
         name = floor + "," + y + "," + x;
+        meshRenderer = GetComponentInChildren<MeshRenderer>();
     }
 
     public bool IsHit(Vector3 hitPos) {
