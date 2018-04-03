@@ -21,6 +21,18 @@ public class MahjongMapEditor : UnityEditor.Editor
             mahjongMap.GenerateMap();
             SceneView.RepaintAll();
         }
+
+        if (GUILayout.Button("Up"))
+        {
+            mahjongMap.SetNowFloorIndex(1);
+            SceneView.RepaintAll();
+        }
+
+        if (GUILayout.Button("Down"))
+        {
+            mahjongMap.SetNowFloorIndex(-1);
+            SceneView.RepaintAll();
+        }
     }
 
     public void OnSceneGUI()

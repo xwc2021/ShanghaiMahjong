@@ -74,16 +74,19 @@ public class MahjongMapDrawer
             var from = original + offsetXY + offsetY * y;
             for (var x = 0; x < CountX; ++x)
             {
-                if (target.IsSetValue(nowFloorIndex, y, x))
-                    Gizmos.color = SetValueColor;
-                else if (x % 2 == 0 && y % 2 == 0)
-                    Gizmos.color = EvenPointColor;
-                else
-                    Gizmos.color = OddPointColor;
-
+                ChoseColor(target, nowFloorIndex,y, x);
                 Gizmos.DrawSphere(from, r);
                 from = from + offsetX;
             }
         }
+    }
+
+    static void ChoseColor(MahjongMap target,int nowFloorIndex, int y, int x) {
+        if (target.IsSetValue(nowFloorIndex, y, x))
+            Gizmos.color = SetValueColor;
+        else if (x % 2 == 0 && y % 2 == 0)
+            Gizmos.color = EvenPointColor;
+        else
+            Gizmos.color = OddPointColor;
     }
 }

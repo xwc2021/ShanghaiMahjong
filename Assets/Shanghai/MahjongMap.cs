@@ -68,6 +68,11 @@ public class MahjongMap : MonoBehaviour {
     [SerializeField]
     int nowFloorIndex = 0;
     public int GetNowFloorIndex() { return nowFloorIndex; }
+    public void SetNowFloorIndex(int offset) {
+        var newIndex = nowFloorIndex + offset;
+        if (IsValidatedFloorIndex(newIndex))
+            nowFloorIndex = newIndex;
+    }
     public bool IsValidatedFloorIndex(int index) { return index >= 0 && index < Floor; }
 
     public int GetX() { return X; }
