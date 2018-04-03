@@ -36,7 +36,7 @@ public class MahjongMap : MonoBehaviour {
                     var node =Instantiate<MapNode>(mapNodePrefab);
                     node.transform.position = original + offsetXY + offsetFloor * f + offsetY * y + offsetX * x;
                     node.transform.parent = this.transform;
-                    node.name = f + "," + y + "," + x;
+                    node.Init(f, y, x);
                     var index = ReMap(f, y, x);
                     map3D[index] = node;
                 }
@@ -77,6 +77,15 @@ public class MahjongMap : MonoBehaviour {
     public bool IsValidatedX(int x) { return x >= 0 && x < CountX(); }
     public bool IsValidatedY(int y) { return y >= 0 && y < CountY(); }
 
+    MapNode GetNode(int floor, int y, int x) {
+        if (IsValidatedY(y) && IsValidatedX(x))
+        {
+            var index = ReMap(floor, y, x);
+            return map3D[index];
+        }
+        return null;
+    }
+
     public int GetX() { return X; }
     public int GetY() { return Y; }
     public int GetAllFloor() { return Floor; }
@@ -97,20 +106,51 @@ public class MahjongMap : MonoBehaviour {
     Vector3 hitPoint;
     public Vector3 GetHitPoint() { return hitPoint; }
 
-    public void AddOne(Vector3 from ,Vector3 dir)
+    public bool IsCanUse(MapNode node) {
+        var x = node.x;
+        var y = node.y;
+        var f = node.floor;
+
+        //8個角都沒在使用才行
+        var node8 = new MapNode[] { GetNode(f, y, x-1) ,GetNode(f, y, x+1) ,
+                                    GetNode(f, y-1, x) ,GetNode(f, y+1, x) ,
+                                    GetNode(f, y-1, x-1) ,
+                                    GetNode(f, y+1, x+1) ,
+                                    GetNode(f, y-1, x+1) ,
+                                    GetNode(f, y+1, x-1) } ;
+        for(var i = 0; i < node8.Length; ++i)
+        {
+            var nowNode = node8[i];
+            if (nowNode == null)
+                continue;
+
+            if (nowNode.IsUse())
+                return false;
+        }
+        return true;
+    }
+
+    public void DoClick(Vector3 from ,Vector3 dir)
     {
         bool hit = GeometryTool.RayHitPlane(from, dir, Vector3.up, transform.position+ GetNowFlowerHeight(), out hitPoint);
-        //Debug.Log("hit=" + hit);
         if (!hit)
             return;
 
-        //Debug.Log(hitPoint);
         var node=GetMapNode();
         if (node == null)
             return;
 
         bool hitSphere = node.IsHit(hitPoint);
-        if (hitSphere)
+        if (!hitSphere)
+            return;
+
+        bool canUse = IsCanUse(node);
+        if (!canUse)
+            return;
+
+        if (node.IsUse())
+            node.SetIsUse(false);
+        else
             node.SetIsUse(true);
     }
 
@@ -126,11 +166,6 @@ public class MahjongMap : MonoBehaviour {
         var x = (int)((diff.x-(diff.x % halfXUnit))/ halfXUnit);
         var y = (int)((diff.z-(diff.z % halfYUnit))/ halfYUnit);
 
-        if (IsValidatedX(x) && IsValidatedY(y))
-        {
-            var index = ReMap(nowFloorIndex, y, x);
-            return map3D[index];
-        }
-        return null;
+        return GetNode(nowFloorIndex, y, x);
     }
 }

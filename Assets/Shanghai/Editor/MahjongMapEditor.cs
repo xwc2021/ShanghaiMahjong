@@ -47,7 +47,6 @@ public class MahjongMapEditor : UnityEditor.Editor
         }
     }
 
-    
     void ShootRay(Vector3 mousePos)
     {
         var camera = Camera.current;
@@ -61,6 +60,6 @@ public class MahjongMapEditor : UnityEditor.Editor
         mahjongMap.SetClickNormalDir(normalDir);
 
         //mahjongMap的平面朝向是固定的，所以不作座標變換
-        mahjongMap.AddOne(from, normalDir);
+        mahjongMap.DoClick(from, normalDir);
     }
 }
