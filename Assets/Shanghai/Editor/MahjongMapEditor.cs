@@ -60,8 +60,22 @@ public class MahjongMapEditor : UnityEditor.Editor
         mahjongMap.SetClickPointOnRay(clickWorldPoint);
         mahjongMap.SetClickNormalDir(normalDir);
 
+        int nowFloor, nowY, nowX;
         //mahjongMap的平面朝向是固定的，所以不作座標變換
-        mahjongMap.DoClick(from, normalDir);
+        bool isHit =mahjongMap.DoClick(from, normalDir,out nowFloor, out nowY, out nowX);
+        if (!isHit)
+            return;
+
+        for (var y = 0; y < mahjongMap.GetAddCountY(); ++y) {
+            for (var x = 0; x < mahjongMap.GetAddCountX(); ++x){
+                var node = mahjongMap.GetNode(nowFloor, nowY+2*y, nowX+ 2 * x);
+                if (node == null)
+                    continue;
+   
+                mahjongMap.ToggleNode(node);
+            }
+        }
+        
     }
 
     void GetRay(Vector3 mousePos, out Vector3 from, out Vector3 clickWorldPoint, out Vector3  normalDir) {

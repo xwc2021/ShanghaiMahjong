@@ -9,6 +9,15 @@ public class MahjongMap : MonoBehaviour {
     public static float heightUnit = 0.5f;
 
     [SerializeField]
+    int addCountX = 1;
+
+    [SerializeField]
+    int addCountY = 1;
+
+    public int GetAddCountX() { return addCountX; }
+    public int GetAddCountY() { return addCountY; }
+
+    [SerializeField]
     MapNode mapNodePrefab;
 
     [SerializeField]
@@ -77,7 +86,7 @@ public class MahjongMap : MonoBehaviour {
     public bool IsValidatedX(int x) { return x >= 0 && x < CountX(); }
     public bool IsValidatedY(int y) { return y >= 0 && y < CountY(); }
 
-    MapNode GetNode(int floor, int y, int x) {
+    public MapNode GetNode(int floor, int y, int x) {
         if (IsValidatedY(y) && IsValidatedX(x))
         {
             var index = ReMap(floor, y, x);
@@ -130,20 +139,33 @@ public class MahjongMap : MonoBehaviour {
         return true;
     }
 
-    public void DoClick(Vector3 from ,Vector3 dir)
+    public bool DoClick(Vector3 from ,Vector3 dir,out int floor,out int y,out int x)
     {
+        floor = -1;
+        x = -1;
+        y = -1;
+
         bool hit = GeometryTool.RayHitPlane(from, dir, Vector3.up, transform.position+ GetNowFlowerHeight(), out hitPoint);
         if (!hit)
-            return;
+            return false;
 
         var node=GetMapNode();
         if (node == null)
-            return;
+            return false;
 
         bool hitSphere = node.IsHit(hitPoint);
         if (!hitSphere)
-            return;
+            return false;
 
+        x = node.x;
+        y = node.y;
+        floor = node.floor;
+
+        return true;
+    }
+
+    public void ToggleNode(MapNode node)
+    {
         bool canUse = IsCanUse(node);
         if (!canUse)
             return;
