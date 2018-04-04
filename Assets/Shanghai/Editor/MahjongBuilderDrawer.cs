@@ -10,7 +10,7 @@ public class MahjongBuilderDrawer
     static Color ClickPointColor = Color.red;
     static Color HitPointColor = Color.yellow;
     static float DebugHitR = 0.05f;
-    static float PointR = 0.025f;
+    static float PointR = 0.1f;
 
 
     [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
