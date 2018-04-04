@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 
-[CustomEditor(typeof(MahjongMap))]
-public class MahjongMapEditor : UnityEditor.Editor
+[CustomEditor(typeof(MahjongBuilder))]
+public class MahjongBuilderEditor : UnityEditor.Editor
 {
-    MahjongMap mahjongMap;
+    MahjongBuilder mahjongMap;
     void OnEnable()
     {
-        mahjongMap = (MahjongMap)target;
+        mahjongMap = (MahjongBuilder)target;
     }
 
     public override void OnInspectorGUI()
@@ -79,9 +79,9 @@ public class MahjongMapEditor : UnityEditor.Editor
         
     }
 
-    MahjongMap.FuncPtr DoWhat()
+    MahjongBuilder.FuncPtr DoWhat()
     {
-        MahjongMap.FuncPtr funptr;
+        MahjongBuilder.FuncPtr funptr;
         switch (mahjongMap.GetOperation())
         {
             case EditOperation.Use:

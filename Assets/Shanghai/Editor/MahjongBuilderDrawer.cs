@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEditor;
 
-public class MahjongMapDrawer
+public class MahjongBuilderDrawer
 {
     static Color SetValueColor = Color.red;
     static Color EvenPointColor = Color.blue;//偶數
@@ -14,7 +14,7 @@ public class MahjongMapDrawer
 
 
     [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
-    static void DrawGizmoFor(MahjongMap target, GizmoType gizmoType)
+    static void DrawGizmoFor(MahjongBuilder target, GizmoType gizmoType)
     {
         DrawGrid(target);
         DrawMap(target);
@@ -30,15 +30,15 @@ public class MahjongMapDrawer
         Gizmos.DrawSphere(target.GetHitPoint(), DebugHitR);
     }
 
-    static void DrawGrid(MahjongMap target)
+    static void DrawGrid(MahjongBuilder target)
     {
         var X = target.GetX(); var Y = target.GetY();
         var nowHeight = target.GetNowFlowerHeight();
         var original = target.transform.position + nowHeight;
 
         //畫直線
-        var yLine = Y * MahjongMap.yUnit * Vector3.forward;
-        var offset = MahjongMap.xUnit * Vector3.right;
+        var yLine = Y * MahjongBuilder.yUnit * Vector3.forward;
+        var offset = MahjongBuilder.xUnit * Vector3.right;
         var from = original;
         for (var x = 1; x <= X + 1; ++x)
         {
@@ -47,8 +47,8 @@ public class MahjongMapDrawer
         }
 
         //畫橫線
-        offset = MahjongMap.yUnit * Vector3.forward;
-        var xLine = X * MahjongMap.xUnit * Vector3.right; ;
+        offset = MahjongBuilder.yUnit * Vector3.forward;
+        var xLine = X * MahjongBuilder.xUnit * Vector3.right; ;
         from = original;
         for (var y = 1; y <= Y + 1; ++y)
         {
@@ -57,14 +57,14 @@ public class MahjongMapDrawer
         }
     }
 
-    static void DrawMap(MahjongMap target)
+    static void DrawMap(MahjongBuilder target)
     {
         var nowHeight = target.GetNowFlowerHeight();
         var original = target.transform.position + nowHeight;
 
         //畫點
-        var offsetX = 0.5f * Vector3.right * MahjongMap.xUnit;
-        var offsetY = 0.5f * Vector3.forward * MahjongMap.yUnit;
+        var offsetX = 0.5f * Vector3.right * MahjongBuilder.xUnit;
+        var offsetY = 0.5f * Vector3.forward * MahjongBuilder.yUnit;
         var offsetXY = offsetX + offsetY;
         
         var nowFloorIndex = target.GetNowFloorIndex();
@@ -84,7 +84,7 @@ public class MahjongMapDrawer
         }
     }
 
-    static void ChoseColor(MahjongMap target,int nowFloorIndex, int y, int x) {
+    static void ChoseColor(MahjongBuilder target,int nowFloorIndex, int y, int x) {
         if (target.IsSetValue(nowFloorIndex, y, x))
             Gizmos.color = SetValueColor;
         else if (x % 2 == 0 && y % 2 == 0)

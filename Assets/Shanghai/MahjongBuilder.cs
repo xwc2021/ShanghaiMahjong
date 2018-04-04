@@ -4,18 +4,21 @@ using UnityEngine;
 
 public enum EditOperation { Use,NotUse, Reverse }
 
-public class MahjongMap : MonoBehaviour {
+public class MahjongBuilder : MonoBehaviour {
 
     public static float xUnit = 1.0f;
     public static float yUnit = 1.5f;
     public static float heightUnit = 0.5f;
 
     [SerializeField]
+    Transform collection;
+
+    [SerializeField]
     EditOperation operation= EditOperation.Use;
     public EditOperation GetOperation() { return operation; }
 
-    public delegate void FuncPtr(MapNode node);
-    public void DoOperation(MapNode node, FuncPtr func) {
+    public delegate void FuncPtr(Mahjong node);
+    public void DoOperation(Mahjong node, FuncPtr func) {
         func(node);
     }
 
@@ -29,37 +32,37 @@ public class MahjongMap : MonoBehaviour {
     public int GetAddCountY() { return addCountY; }
 
     [SerializeField]
-    MapNode mapNodePrefabOdd;
+    Mahjong mahjongOdd;
     [SerializeField]
-    MapNode mapNodePrefabEven;
+    Mahjong mahjongEven;
 
     [SerializeField]
     [HideInInspector]
-    private MapNode[] map3D;
+    private Mahjong[] map3D;
 
     public int CountY() { return 2 * Y - 1; }
     public int CountX() { return 2 * X - 1; }
     public void GenerateMap()
     {
-        var count =transform.childCount;
+        var count =collection.childCount;
         for (var i = count - 1; i >= 0; --i)
-            DestroyImmediate(transform.GetChild(i).gameObject);
+            DestroyImmediate(collection.GetChild(i).gameObject);
 
         Debug.Log("clear count = " + count);
 
-        map3D = new MapNode[Floor* CountY()* CountX()];
+        map3D = new Mahjong[Floor* CountY()* CountX()];
         var original = transform.position;
-        var offsetX = 0.5f * Vector3.right * MahjongMap.xUnit;
-        var offsetY = 0.5f * Vector3.forward * MahjongMap.yUnit;
-        var offsetFloor =  Vector3.up * MahjongMap.heightUnit;
+        var offsetX = 0.5f * Vector3.right * MahjongBuilder.xUnit;
+        var offsetY = 0.5f * Vector3.forward * MahjongBuilder.yUnit;
+        var offsetFloor =  Vector3.up * MahjongBuilder.heightUnit;
         var offsetXY = offsetX + offsetY;
         for (var f = 0; f < Floor; ++f) {
             bool isOdd = f % 2 == 0;
             for (var y = 0; y < CountY(); ++y){
                 for (var x = 0; x < CountX(); ++x){
-                    var node =Instantiate<MapNode>(isOdd?mapNodePrefabOdd: mapNodePrefabEven);
+                    var node =Instantiate<Mahjong>(isOdd? mahjongOdd : mahjongEven);
                     node.transform.position = original + offsetXY + offsetFloor * f + offsetY * y + offsetX * x;
-                    node.transform.parent = this.transform;
+                    node.transform.parent = collection;
                     node.Init(f, y, x);
                     var index = ReMap(f, y, x);
                     map3D[index] = node;
@@ -101,7 +104,7 @@ public class MahjongMap : MonoBehaviour {
     public bool IsValidatedX(int x) { return x >= 0 && x < CountX(); }
     public bool IsValidatedY(int y) { return y >= 0 && y < CountY(); }
 
-    public MapNode GetNode(int floor, int y, int x) {
+    public Mahjong GetNode(int floor, int y, int x) {
         if (IsValidatedY(y) && IsValidatedX(x))
         {
             var index = ReMap(floor, y, x);
@@ -113,7 +116,7 @@ public class MahjongMap : MonoBehaviour {
     public int GetX() { return X; }
     public int GetY() { return Y; }
     public int GetAllFloor() { return Floor; }
-    public Vector3 GetNowFlowerHeight() { return Vector3.up * MahjongMap.heightUnit * nowFloorIndex; }
+    public Vector3 GetNowFlowerHeight() { return Vector3.up * MahjongBuilder.heightUnit * nowFloorIndex; }
 
     Vector3 clickPointOnRay;
     public Vector3 GetClickPointOnRay() { return clickPointOnRay; }
@@ -130,13 +133,13 @@ public class MahjongMap : MonoBehaviour {
     Vector3 hitPoint;
     public Vector3 GetHitPoint() { return hitPoint; }
 
-    public bool IsCanUse(MapNode node) {
+    public bool IsCanUse(Mahjong node) {
         var x = node.x;
         var y = node.y;
         var f = node.floor;
 
         //8個角都沒在使用才行
-        var node8 = new MapNode[] { GetNode(f, y, x-1) ,GetNode(f, y, x+1) ,
+        var node8 = new Mahjong[] { GetNode(f, y, x-1) ,GetNode(f, y, x+1) ,
                                     GetNode(f, y-1, x) ,GetNode(f, y+1, x) ,
                                     GetNode(f, y-1, x-1) ,
                                     GetNode(f, y+1, x+1) ,
@@ -179,7 +182,7 @@ public class MahjongMap : MonoBehaviour {
         return true;
     }
 
-    public void ReverseNode(MapNode node)
+    public void ReverseNode(Mahjong node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -191,7 +194,7 @@ public class MahjongMap : MonoBehaviour {
             node.SetIsUse(true);
     }
 
-    public void UseNode(MapNode node)
+    public void UseNode(Mahjong node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -200,7 +203,7 @@ public class MahjongMap : MonoBehaviour {
         node.SetIsUse(true);
     }
 
-    public void NotUseNode(MapNode node)
+    public void NotUseNode(Mahjong node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -209,15 +212,15 @@ public class MahjongMap : MonoBehaviour {
         node.SetIsUse(false);
     }
 
-    MapNode GetMapNode()
+    Mahjong GetMapNode()
     {
-        var offsetX = 0.25f * Vector3.right * MahjongMap.xUnit;
-        var offsetY = 0.25f * Vector3.forward * MahjongMap.yUnit;
+        var offsetX = 0.25f * Vector3.right * MahjongBuilder.xUnit;
+        var offsetY = 0.25f * Vector3.forward * MahjongBuilder.yUnit;
         var refPoint = transform.position + offsetX + offsetY;
 
         var diff = (hitPoint - refPoint);
-        var halfXUnit = 0.5 * MahjongMap.xUnit;
-        var halfYUnit = 0.5 * MahjongMap.yUnit;
+        var halfXUnit = 0.5 * MahjongBuilder.xUnit;
+        var halfYUnit = 0.5 * MahjongBuilder.yUnit;
         var x = (int)((diff.x-(diff.x % halfXUnit))/ halfXUnit);
         var y = (int)((diff.z-(diff.z % halfYUnit))/ halfYUnit);
 

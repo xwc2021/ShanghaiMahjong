@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapNode : MonoBehaviour {
+public class Mahjong : MonoBehaviour {
 
     public static float HitRangeRadius = 0.2f;
 
