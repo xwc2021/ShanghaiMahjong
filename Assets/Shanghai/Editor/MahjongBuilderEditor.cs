@@ -113,7 +113,6 @@ public class MahjongBuilderEditor : UnityEditor.Editor
         var camera = Camera.current;
         mousePos.y = camera.pixelHeight - mousePos.y;//mousePos左上角是(0,0)
 
-        Debug.Log(Screen.width + ","+ Screen.height);
         var halfWidth = 0.5f * camera.pixelWidth;
         var halfHeight = 0.5f * camera.pixelHeight;
         var nx = (mousePos.x- halfWidth) / halfWidth;
