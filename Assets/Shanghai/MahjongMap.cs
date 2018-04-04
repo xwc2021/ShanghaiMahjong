@@ -29,9 +29,12 @@ public class MahjongMap : MonoBehaviour {
     public int GetAddCountY() { return addCountY; }
 
     [SerializeField]
-    MapNode mapNodePrefab;
+    MapNode mapNodePrefabOdd;
+    [SerializeField]
+    MapNode mapNodePrefabEven;
 
     [SerializeField]
+    [HideInInspector]
     private MapNode[] map3D;
 
     public int CountY() { return 2 * Y - 1; }
@@ -51,9 +54,10 @@ public class MahjongMap : MonoBehaviour {
         var offsetFloor =  Vector3.up * MahjongMap.heightUnit;
         var offsetXY = offsetX + offsetY;
         for (var f = 0; f < Floor; ++f) {
+            bool isOdd = f % 2 == 0;
             for (var y = 0; y < CountY(); ++y){
                 for (var x = 0; x < CountX(); ++x){
-                    var node =Instantiate<MapNode>(mapNodePrefab);
+                    var node =Instantiate<MapNode>(isOdd?mapNodePrefabOdd: mapNodePrefabEven);
                     node.transform.position = original + offsetXY + offsetFloor * f + offsetY * y + offsetX * x;
                     node.transform.parent = this.transform;
                     node.Init(f, y, x);

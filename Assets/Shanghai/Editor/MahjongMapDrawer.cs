@@ -5,8 +5,8 @@ using UnityEditor;
 public class MahjongMapDrawer
 {
     static Color SetValueColor = Color.red;
-    static Color EvenPointColor = Color.blue;
-    static Color OddPointColor = Color.green;
+    static Color EvenPointColor = Color.blue;//偶數
+    static Color OddPointColor = Color.green;//奇數
     static Color ClickPointColor = Color.red;
     static Color HitPointColor = Color.yellow;
     static float DebugHitR = 0.05f;
