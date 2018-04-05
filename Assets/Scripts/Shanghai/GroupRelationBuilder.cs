@@ -2,6 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//用來記錄相依性
+[System.Serializable]
+public class Relation {
+
+    [SerializeField]
+    Group from;//先
+
+    [SerializeField]
+    Group to;//後
+}
+
+[System.Serializable]
+public class RelationManager {
+
+    [SerializeField]
+    Relation[] links;//同1層Floor
+
+    [SerializeField]
+    Relation[] downToUpLinks;//上下層之間的relation
+
+    Dictionary<Group, Relation> forwardLinks;//Key是from
+    Dictionary<Group, Relation> trackBackLinks;//Key是to
+}
+
 public class GroupRelationBuilder : MonoBehaviour {
     [SerializeField]
     Transform groupsContainer;
@@ -139,4 +163,7 @@ public class GroupRelationBuilder : MonoBehaviour {
         if (voxelBuilder.IsValidatedFloorIndex(newIndex))
             nowFloorIndex = newIndex;
     }
+
+    public Relation relation;
+    public RelationManager relationManager;
 }
