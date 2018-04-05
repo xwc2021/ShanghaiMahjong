@@ -18,10 +18,8 @@ public class Group : MonoBehaviour {
 
     [SerializeField]
     Element[] elements;
-    public void AddElements(Element[] element)
-    {
-        elements = element;
-    }
+    public void AddElements(Element[] element){elements = element;}
+    public Element[] GetElements(){return elements;}
 
     public int xBegin,xEnd;
     public int y;

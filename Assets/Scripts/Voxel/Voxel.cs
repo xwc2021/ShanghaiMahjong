@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Voxel : MonoBehaviour {
 
+    public Group group;
+    public Element element;
+
     public static float HitRangeRadius = 0.2f;
 
     [SerializeField]

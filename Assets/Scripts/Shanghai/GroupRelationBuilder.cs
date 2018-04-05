@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.SceneManagement;
+using UnityEditor;
 
 //用來記錄相依性
 [System.Serializable]
@@ -11,19 +13,39 @@ public class Relation {
 
     [SerializeField]
     Group to;//後
+
+    public Relation(Group from, Group to)
+    {
+        this.from = from;
+        this.to = to;
+    }
 }
 
 [System.Serializable]
 public class RelationManager {
 
-    [SerializeField]
-    Relation[] links;//同1層Floor
+    public void BeforeBuild() {
+        downToUpLinks = new List<Relation>();
+        links = new List<Relation>();
+    }
 
     [SerializeField]
-    Relation[] downToUpLinks;//上下層之間的relation
+    List<Relation> downToUpLinks;//上下層之間的relation
+
+    public void AddDownToUpLinks(Group from, Group to) {
+        downToUpLinks.Add(new Relation(from, to));
+    }
+
+    [SerializeField]
+    List<Relation> links;//同1層Floor
 
     Dictionary<Group, Relation> forwardLinks;//Key是from
     Dictionary<Group, Relation> trackBackLinks;//Key是to
+
+    public void ReBuildDictionary()
+    {
+        Debug.Log("ReBuildDictionary");
+    }
 }
 
 public class GroupRelationBuilder : MonoBehaviour {
@@ -51,7 +73,11 @@ public class GroupRelationBuilder : MonoBehaviour {
     [SerializeField]
     int[] Count;
     public List<Group>  GetGroupList() {
-        return groupList.GetRange(BeginIndex[nowFloorIndex], Count[nowFloorIndex]);
+        return GetGroupList(nowFloorIndex);
+    }
+
+    List<Group> GetGroupList(int floor) {
+        return groupList.GetRange(BeginIndex[floor], Count[floor]);
     }
 
     [SerializeField]
@@ -78,6 +104,18 @@ public class GroupRelationBuilder : MonoBehaviour {
         //(4)為Element綁定OutputTrigger和InputReceiver
     }
 
+    void MakeLinkBetween2Floor(int floor, int lowerFloor) {
+        var groups = GetGroupList(floor);
+        var elementList = new List<Element>();
+        foreach (var g in groups)
+            elementList.AddRange(g.GetElements());
+        foreach (var e in elementList)
+            MakeLinkToLowerFloor(e);
+    }
+
+    void MakeLinkToLowerFloor(Element element) {
+    }
+
     Voxel GetVoxel(int floor,int y,int x){
         return voxelBuilder.GetVoxel(floor, y, x);
     }
@@ -88,7 +126,7 @@ public class GroupRelationBuilder : MonoBehaviour {
         for (var y = 0; y < voxelBuilder.CountY(); ++y)
         {
             var lines = GetLines(floor, y);
-            for (var i = 0; i < lines.Count; ++i) {
+            for (var i = 0; i < lines.Count; ++i) {//1個line會對映到1個group
                 var group = CreateGroup();
                 var voxels = lines[i];
                 var elementList = new List<Element>();
@@ -97,6 +135,10 @@ public class GroupRelationBuilder : MonoBehaviour {
                     var voxel = voxels[k];
                     element.Set(voxel);
                     elementList.Add(element);
+
+                    //為了之後建立relation方便
+                    voxel.group = group;
+                    voxel.element = element;
                 }
                 var voxelBegin = voxels[0];
                 var voxelEnd = voxels[voxels.Length - 1];
@@ -166,4 +208,23 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public Relation relation;
     public RelationManager relationManager;
+
+}
+
+//https://answers.unity.com/questions/283191/how-do-i-detect-if-a-scene-is-being-loaded-during.html
+[InitializeOnLoad]
+public static class WhenEditorOpen
+{
+    static WhenEditorOpen()
+    {
+        EditorSceneManager.sceneOpened +=SceneOpenedCallback;
+    }
+
+    static void SceneOpenedCallback(UnityEngine.SceneManagement.Scene scene, OpenSceneMode mode)
+    {
+        var groupRelationBuilder=GameObject.FindObjectOfType<GroupRelationBuilder>();
+        if (groupRelationBuilder == null)
+            return;
+        groupRelationBuilder.relationManager.ReBuildDictionary();
+    }
 }
