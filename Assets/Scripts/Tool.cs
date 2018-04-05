@@ -8,6 +8,6 @@ public class Tool  {
         var count = transform.childCount;
         for (var i = count - 1; i >= 0; --i)
             GameObject.DestroyImmediate(transform.GetChild(i).gameObject);
-        Debug.Log("clear count = " + count);
+        Debug.Log("["+transform.name+"] clear count = " + count);
     }
 }

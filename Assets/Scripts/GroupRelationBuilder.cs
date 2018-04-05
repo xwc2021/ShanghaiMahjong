@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GroupRelationBuilder : MonoBehaviour {
+    [SerializeField]
+    Transform groupsContainer;
+    [SerializeField]
+    Transform elementsContainer;
+    [SerializeField]
+    Group groupPrefab;
+    [SerializeField]
+    Element elementPrefab;
 
     [SerializeField]
     VoxelBuilder mahjongBuilder;
@@ -15,8 +23,12 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public void Build()
     {
-        //(1)建立Group(每1層由左上角開始水平掃描)
+        //(1)建立Group(每1層由左下角開始水平掃描)
+        Tool.Clear(groupsContainer);
+        Tool.Clear(elementsContainer);
+        groupList = new List<Group>();
         for (var f = 0; f < mahjongBuilder.GetFloor(); ++f) {
+            BuildGroupInTheFloor(f);
         }
 
         //(2)每1層作Link(Relation)
@@ -24,44 +36,77 @@ public class GroupRelationBuilder : MonoBehaviour {
         //(4)為Element綁定OutputTrigger和InputReceiver
     }
 
-    Voxel GetNode(int floor,int y,int x){
-        return mahjongBuilder.GetNode(floor, y, x);
+    Voxel GetVoxel(int floor,int y,int x){
+        return mahjongBuilder.GetVoxel(floor, y, x);
     }
 
     void BuildGroupInTheFloor(int floor)
     {
-        for (var y = 0; y < mahjongBuilder.GetY(); ++y)
+        for (var y = 0; y < mahjongBuilder.CountY(); ++y)
         {
-            for (var x = 0; x < mahjongBuilder.GetX(); ++x)
-            {
+            var lines =GetLines(floor, y);
+            for (var i = 0; i < lines.Count; ++i) {
+                var group = CreateGroup();
+                var voxels = lines[i];
+                var elementList = new List<Element>();
+                for (var k = 0; k < voxels.Length; ++k) {
+                    var element = CreateElement();
+                    var voxel = voxels[k];
+                    element.Set(voxel);
+                    elementList.Add(element);
+                }
+                var voxelBegin = voxels[0];
+                var voxelEnd = voxels[voxels.Length-1];
+                group.Setpos(voxelBegin);
+                group.Set(voxelBegin.floor, voxelBegin.y, voxelBegin.x, voxelEnd.x);
+                group.AddElements(elementList.ToArray());
+                groupList.Add(group);
             }
         }
     }
 
-    //洗牌
-    public void Shuffle()
+    Group CreateGroup()
     {
-        //(1)挑出沒有相依性的Group，放入Game的ShufflingList
-        //(2)從ShufflingList裡隨機挑出1個group
-        while (false)
-        {
-            //如果不是
-            if (false)
-            {
-                //ShuffleNotUsing->随機挑出1個element
-                //ShuffleUsing->nowPickIndex左/右挑1個element
-            }
-            //如果是有相依性的group
-            if (true)
-            {
-                //ShuffleNotUsing->從ready的elments中随機挑出1個element
-                //ShuffleUsing->nowPickIndex左/右挑1個element(要ready的才行)
-            }
-
-
-            //如果group滿了，設定state=ShuffleFinish，並從groupList中移出
-        }
-
+        return Instantiate<Group>(groupPrefab,groupsContainer);
     }
 
+    Element CreateElement()
+    {
+        return Instantiate<Element>(elementPrefab, elementsContainer);
+    }
+
+    List<Voxel[]> GetLines(int floor, int y)
+    {
+        List<Voxel[]> batch = new List<Voxel[]>();
+        List<Voxel> line=new List<Voxel>();
+        bool adding=false;
+
+        var x = 0;
+        while(x < mahjongBuilder.CountX())
+        {
+            var voxel = GetVoxel(floor, y, x);
+            if (voxel.IsUse())
+            {
+                adding = true;
+                line.Add(voxel);
+                x = x + 2;//相連會差2格
+                continue;
+            }
+            else
+            {
+                if (adding) {
+                    batch.Add(line.ToArray());
+                    line.Clear();
+                    adding = false;
+                } 
+            }
+            x = x  +1;
+        }
+
+        //如果最後1次add是在末端
+        if(adding)
+            batch.Add(line.ToArray());
+
+        return batch;
+    }
 }

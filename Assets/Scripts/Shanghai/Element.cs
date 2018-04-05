@@ -16,6 +16,12 @@ public class Element : MonoBehaviour {
     OutputTrigger[] outputs;
     InputReceiver input;
 
+    public void Set(Voxel voxel)
+    {
+        transform.localPosition = voxel.transform.localPosition;
+        name = voxel.floor+","+ voxel.y+ "," + voxel.x;
+    }
+
     public void BeforeSuffle() {
         outputs = GetComponents<OutputTrigger>();
         input = GetComponent<InputReceiver>();

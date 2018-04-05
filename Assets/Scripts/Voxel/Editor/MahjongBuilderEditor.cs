@@ -70,7 +70,7 @@ public class MahjongBuilderEditor : UnityEditor.Editor
         var funptr = DoWhat();
         for (var y = 0; y < mahjongMap.GetAddCountY(); ++y) {
             for (var x = 0; x < mahjongMap.GetAddCountX(); ++x){
-                var node = mahjongMap.GetNode(nowFloor, nowY+2*y, nowX+ 2 * x);
+                var node = mahjongMap.GetVoxel(nowFloor, nowY+2*y, nowX+ 2 * x);
                 if (node == null)
                     continue;
    

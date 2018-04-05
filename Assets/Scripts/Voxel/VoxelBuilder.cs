@@ -110,7 +110,7 @@ public class VoxelBuilder : MonoBehaviour {
     public bool IsValidatedX(int x) { return x >= 0 && x < CountX(); }
     public bool IsValidatedY(int y) { return y >= 0 && y < CountY(); }
 
-    public Voxel GetNode(int floor, int y, int x) {
+    public Voxel GetVoxel(int floor, int y, int x) {
         if (IsValidatedY(y) && IsValidatedX(x))
         {
             var index = ReMap(floor, y, x);
@@ -145,12 +145,12 @@ public class VoxelBuilder : MonoBehaviour {
         var f = node.floor;
 
         //8個角都沒在使用才行
-        var node8 = new Voxel[] { GetNode(f, y, x-1) ,GetNode(f, y, x+1) ,
-                                    GetNode(f, y-1, x) ,GetNode(f, y+1, x) ,
-                                    GetNode(f, y-1, x-1) ,
-                                    GetNode(f, y+1, x+1) ,
-                                    GetNode(f, y-1, x+1) ,
-                                    GetNode(f, y+1, x-1) } ;
+        var node8 = new Voxel[] { GetVoxel(f, y, x-1) ,GetVoxel(f, y, x+1) ,
+                                    GetVoxel(f, y-1, x) ,GetVoxel(f, y+1, x) ,
+                                    GetVoxel(f, y-1, x-1) ,
+                                    GetVoxel(f, y+1, x+1) ,
+                                    GetVoxel(f, y-1, x+1) ,
+                                    GetVoxel(f, y+1, x-1) } ;
         for(var i = 0; i < node8.Length; ++i)
         {
             var nowNode = node8[i];
@@ -256,6 +256,6 @@ public class VoxelBuilder : MonoBehaviour {
         var x = (int)((diff.x-(diff.x % halfXUnit))/ halfXUnit);
         var y = (int)((diff.z-(diff.z % halfYUnit))/ halfYUnit);
 
-        return GetNode(nowFloorIndex, y, x);
+        return GetVoxel(nowFloorIndex, y, x);
     }
 }
