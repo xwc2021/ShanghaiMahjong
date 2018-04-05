@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MahjongTemplate : MonoBehaviour {
+public class VoxelViewer : MonoBehaviour {
 
     public void Clear()
     {

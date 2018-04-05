@@ -969,6 +969,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mahjongBuilder: {fileID: 1761530371}
+  game: {fileID: 113480101}
+  groupList: []
 --- !u!4 &18275955
 Transform:
   m_ObjectHideFlags: 0
@@ -6991,6 +6993,47 @@ Transform:
   m_Father: {fileID: 1761530372}
   m_RootOrder: 2490
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &113480099
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 113480100}
+  - component: {fileID: 113480101}
+  m_Layer: 0
+  m_Name: Game
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &113480100
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 113480099}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 38, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &113480101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 113480099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 841a94a6feba02243a43da5a57a362eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groupList: []
 --- !u!1 &113519371
 GameObject:
   m_ObjectHideFlags: 0
@@ -74302,7 +74345,7 @@ GameObject:
   - component: {fileID: 1072384198}
   - component: {fileID: 1072384199}
   m_Layer: 0
-  m_Name: MahjongTemplate
+  m_Name: VoxelViewer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -124130,7 +124173,7 @@ GameObject:
   - component: {fileID: 1761530372}
   - component: {fileID: 1761530371}
   m_Layer: 0
-  m_Name: MahjongBuilder
+  m_Name: VoxelBuilder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -124147,14 +124190,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a5f7d851f1562844b1610e8399fb9ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mahjongTemplate: {fileID: 1072384199}
+  voxelViewer: {fileID: 1072384199}
   operation: 2
   addCountX: 1
   addCountY: 1
-  mahjongOdd: {fileID: 1593307044762230, guid: a11352e6cafca904fa9568acd4b9cb96, type: 2}
-  mahjongEven: {fileID: 1836961228716168, guid: 23c967db95d42154183b687bece8b444,
+  voxelVixibleOdd: {fileID: 1593307044762230, guid: a11352e6cafca904fa9568acd4b9cb96,
     type: 2}
-  mahjong: {fileID: 114101191172315512, guid: af87ad9a2cf38f743aea8ca517ea6773, type: 2}
+  voxelVisibleEven: {fileID: 1836961228716168, guid: 23c967db95d42154183b687bece8b444,
+    type: 2}
+  voxel: {fileID: 114101191172315512, guid: af87ad9a2cf38f743aea8ca517ea6773, type: 2}
   map3D:
   - {fileID: 232364501}
   - {fileID: 1666001190}
@@ -127104,7 +127148,7 @@ MonoBehaviour:
   X: 16
   Y: 10
   Floor: 5
-  nowFloorIndex: 3
+  nowFloorIndex: 0
   clickPointDistance: 10
 --- !u!4 &1761530372
 Transform:

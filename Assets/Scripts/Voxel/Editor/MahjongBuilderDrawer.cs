@@ -14,7 +14,7 @@ public class MahjongBuilderDrawer
 
 
     [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
-    static void DrawGizmoFor(MahjongBuilder target, GizmoType gizmoType)
+    static void DrawGizmoFor(VoxelBuilder target, GizmoType gizmoType)
     {
         DrawGrid(target);
         DrawMap(target);
@@ -30,15 +30,15 @@ public class MahjongBuilderDrawer
         Gizmos.DrawSphere(target.GetHitPoint(), DebugHitR);
     }
 
-    static void DrawGrid(MahjongBuilder target)
+    static void DrawGrid(VoxelBuilder target)
     {
         var X = target.GetX(); var Y = target.GetY();
         var nowHeight = target.GetNowFlowerHeight();
         var original = target.transform.position + nowHeight;
 
         //畫直線
-        var yLine = Y * MahjongBuilder.yUnit * Vector3.forward;
-        var offset = MahjongBuilder.xUnit * Vector3.right;
+        var yLine = Y * VoxelBuilder.yUnit * Vector3.forward;
+        var offset = VoxelBuilder.xUnit * Vector3.right;
         var from = original;
         for (var x = 1; x <= X + 1; ++x)
         {
@@ -47,8 +47,8 @@ public class MahjongBuilderDrawer
         }
 
         //畫橫線
-        offset = MahjongBuilder.yUnit * Vector3.forward;
-        var xLine = X * MahjongBuilder.xUnit * Vector3.right; ;
+        offset = VoxelBuilder.yUnit * Vector3.forward;
+        var xLine = X * VoxelBuilder.xUnit * Vector3.right; ;
         from = original;
         for (var y = 1; y <= Y + 1; ++y)
         {
@@ -57,14 +57,14 @@ public class MahjongBuilderDrawer
         }
     }
 
-    static void DrawMap(MahjongBuilder target)
+    static void DrawMap(VoxelBuilder target)
     {
         var nowHeight = target.GetNowFlowerHeight();
         var original = target.transform.position + nowHeight;
 
         //畫點
-        var offsetX = 0.5f * Vector3.right * MahjongBuilder.xUnit;
-        var offsetY = 0.5f * Vector3.forward * MahjongBuilder.yUnit;
+        var offsetX = 0.5f * Vector3.right * VoxelBuilder.xUnit;
+        var offsetY = 0.5f * Vector3.forward * VoxelBuilder.yUnit;
         var offsetXY = offsetX + offsetY;
         
         var nowFloorIndex = target.GetNowFloorIndex();
@@ -84,7 +84,7 @@ public class MahjongBuilderDrawer
         }
     }
 
-    static void ChoseColor(MahjongBuilder target,int nowFloorIndex, int y, int x) {
+    static void ChoseColor(VoxelBuilder target,int nowFloorIndex, int y, int x) {
         if (target.IsSetValue(nowFloorIndex, y, x))
             Gizmos.color = SetValueColor;
         else if (x % 2 == 0 && y % 2 == 0)

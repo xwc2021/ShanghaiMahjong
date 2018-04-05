@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4797441305775972}
   - component: {fileID: 114101191172315512}
   m_Layer: 0
-  m_Name: Mahjong
+  m_Name: Voxel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,6 +52,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isUse: 0
+  isOdd: 1
   x: 0
   y: 0
   floor: 0
+  visible: {fileID: 0}

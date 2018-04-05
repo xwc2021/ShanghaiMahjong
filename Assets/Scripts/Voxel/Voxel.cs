@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Mahjong : MonoBehaviour {
+public class Voxel : MonoBehaviour {
 
     public static float HitRangeRadius = 0.2f;
 

@@ -4,21 +4,21 @@ using UnityEngine;
 
 public enum EditOperation { Use,NotUse, Reverse }
 
-public class MahjongBuilder : MonoBehaviour {
+public class VoxelBuilder : MonoBehaviour {
 
     public static float xUnit = 1.0f;
     public static float yUnit = 1.5f;
     public static float heightUnit = 0.5f;
 
     [SerializeField]
-    MahjongTemplate mahjongTemplate;
+    VoxelViewer voxelViewer;
 
     [SerializeField]
     EditOperation operation= EditOperation.Use;
     public EditOperation GetOperation() { return operation; }
 
-    public delegate void FuncPtr(Mahjong node);
-    public void DoOperation(Mahjong node, FuncPtr func) {
+    public delegate void FuncPtr(Voxel node);
+    public void DoOperation(Voxel node, FuncPtr func) {
         func(node);
     }
 
@@ -32,41 +32,41 @@ public class MahjongBuilder : MonoBehaviour {
     public int GetAddCountY() { return addCountY; }
 
     [SerializeField]
-    GameObject mahjongOdd;
+    GameObject voxelVixibleOdd;
     [SerializeField]
-    GameObject mahjongEven;
+    GameObject voxelVisibleEven;
     [SerializeField]
-    Mahjong mahjong;
+    Voxel voxel;
 
     [SerializeField]
     [HideInInspector]
-    private Mahjong[] map3D;
+    private Voxel[] map3D;
 
     public int CountY() { return 2 * Y - 1; }
     public int CountX() { return 2 * X - 1; }
 
     public void SyncPos()
     {
-        mahjongTemplate.SyncPos(transform.position);
+        voxelViewer.SyncPos(transform.position);
     }
 
     public void GenerateMap()
     {
         nowFloorIndex = 0;
         Tool.Clear(transform);
-        mahjongTemplate.Clear();
+        voxelViewer.Clear();
 
-        map3D = new Mahjong[Floor* CountY()* CountX()];
+        map3D = new Voxel[Floor* CountY()* CountX()];
         var original = transform.position;
-        var offsetX = 0.5f * Vector3.right * MahjongBuilder.xUnit;
-        var offsetY = 0.5f * Vector3.forward * MahjongBuilder.yUnit;
-        var offsetFloor =  Vector3.up * MahjongBuilder.heightUnit;
+        var offsetX = 0.5f * Vector3.right * VoxelBuilder.xUnit;
+        var offsetY = 0.5f * Vector3.forward * VoxelBuilder.yUnit;
+        var offsetFloor =  Vector3.up * VoxelBuilder.heightUnit;
         var offsetXY = offsetX + offsetY;
         for (var f = 0; f < Floor; ++f) {
             bool isOdd = f % 2 == 0;
             for (var y = 0; y < CountY(); ++y){
                 for (var x = 0; x < CountX(); ++x){
-                    var node =Instantiate<Mahjong>(mahjong);
+                    var node =Instantiate<Voxel>(voxel);
                     node.transform.position = original + offsetXY + offsetFloor * f + offsetY * y + offsetX * x;
                     node.transform.parent = transform;
                     node.Init(f, y, x, isOdd );
@@ -110,7 +110,7 @@ public class MahjongBuilder : MonoBehaviour {
     public bool IsValidatedX(int x) { return x >= 0 && x < CountX(); }
     public bool IsValidatedY(int y) { return y >= 0 && y < CountY(); }
 
-    public Mahjong GetNode(int floor, int y, int x) {
+    public Voxel GetNode(int floor, int y, int x) {
         if (IsValidatedY(y) && IsValidatedX(x))
         {
             var index = ReMap(floor, y, x);
@@ -121,8 +121,8 @@ public class MahjongBuilder : MonoBehaviour {
 
     public int GetX() { return X; }
     public int GetY() { return Y; }
-    public int GetAllFloor() { return Floor; }
-    public Vector3 GetNowFlowerHeight() { return Vector3.up * MahjongBuilder.heightUnit * nowFloorIndex; }
+    public int GetFloor() { return Floor; }
+    public Vector3 GetNowFlowerHeight() { return Vector3.up * VoxelBuilder.heightUnit * nowFloorIndex; }
 
     Vector3 clickPointOnRay;
     public Vector3 GetClickPointOnRay() { return clickPointOnRay; }
@@ -139,13 +139,13 @@ public class MahjongBuilder : MonoBehaviour {
     Vector3 hitPoint;
     public Vector3 GetHitPoint() { return hitPoint; }
 
-    public bool IsCanUse(Mahjong node) {
+    public bool IsCanUse(Voxel node) {
         var x = node.x;
         var y = node.y;
         var f = node.floor;
 
         //8個角都沒在使用才行
-        var node8 = new Mahjong[] { GetNode(f, y, x-1) ,GetNode(f, y, x+1) ,
+        var node8 = new Voxel[] { GetNode(f, y, x-1) ,GetNode(f, y, x+1) ,
                                     GetNode(f, y-1, x) ,GetNode(f, y+1, x) ,
                                     GetNode(f, y-1, x-1) ,
                                     GetNode(f, y+1, x+1) ,
@@ -188,7 +188,7 @@ public class MahjongBuilder : MonoBehaviour {
         return true;
     }
 
-    public void ReverseNode(Mahjong node)
+    public void ReverseNode(Voxel node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -207,7 +207,7 @@ public class MahjongBuilder : MonoBehaviour {
             
     }
 
-    public void UseNode(Mahjong node)
+    public void UseNode(Voxel node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -217,7 +217,7 @@ public class MahjongBuilder : MonoBehaviour {
         AddVisible(node);
     }
 
-    public void NotUseNode(Mahjong node)
+    public void NotUseNode(Voxel node)
     {
         bool canUse = IsCanUse(node);
         if (!canUse)
@@ -227,32 +227,32 @@ public class MahjongBuilder : MonoBehaviour {
         RemoveVisible(node);
     }
 
-    void AddVisible(Mahjong node)
+    void AddVisible(Voxel node)
     {
         if (node.visible != null)
             return;
 
-        var obj =Instantiate<GameObject>(node.IsOdd() ? mahjongOdd : mahjongEven,mahjongTemplate.transform);
+        var obj =Instantiate<GameObject>(node.IsOdd() ? voxelVixibleOdd : voxelVisibleEven,voxelViewer.transform);
         obj.transform.localPosition = node.transform.localPosition;
         obj.name = node.name;
         node.visible = obj;
     }
 
-    void RemoveVisible(Mahjong node)
+    void RemoveVisible(Voxel node)
     {
         DestroyImmediate(node.visible);
         node.visible = null;
     }
 
-    Mahjong GetMapNode()
+    Voxel GetMapNode()
     {
-        var offsetX = 0.25f * Vector3.right * MahjongBuilder.xUnit;
-        var offsetY = 0.25f * Vector3.forward * MahjongBuilder.yUnit;
+        var offsetX = 0.25f * Vector3.right * VoxelBuilder.xUnit;
+        var offsetY = 0.25f * Vector3.forward * VoxelBuilder.yUnit;
         var refPoint = transform.position + offsetX + offsetY;
 
         var diff = (hitPoint - refPoint);
-        var halfXUnit = 0.5 * MahjongBuilder.xUnit;
-        var halfYUnit = 0.5 * MahjongBuilder.yUnit;
+        var halfXUnit = 0.5 * VoxelBuilder.xUnit;
+        var halfYUnit = 0.5 * VoxelBuilder.yUnit;
         var x = (int)((diff.x-(diff.x % halfXUnit))/ halfXUnit);
         var y = (int)((diff.z-(diff.z % halfYUnit))/ halfYUnit);
 
