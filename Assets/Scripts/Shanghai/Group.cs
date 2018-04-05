@@ -42,4 +42,17 @@ public class Group : MonoBehaviour {
     {
         //如果elment裡有outputTrigger就發送
     }
+
+    public Vector3[] GetRect() {
+        var BeginElement = elements[0].transform;
+        var EndElement = elements[elements.Length-1].transform;
+        var offsetX = 0.5f*VoxelBuilder.xUnit*Vector3.right;
+        var offsetY = 0.5f * VoxelBuilder.yUnit * Vector3.forward;
+        return new Vector3[] {//從左下角開始逆時鐘方向轉1圈
+            BeginElement.position- offsetX- offsetY,
+            EndElement.position+ offsetX- offsetY,
+            EndElement.position+ offsetX+ offsetY,
+            BeginElement.position- offsetX+ offsetY
+        };
+    }
 }

@@ -13,7 +13,7 @@ public class GroupRelationBuilder : MonoBehaviour {
     Element elementPrefab;
 
     [SerializeField]
-    VoxelBuilder mahjongBuilder;
+    VoxelBuilder voxelBuilder;
 
     [SerializeField]
     Game game;
@@ -21,13 +21,31 @@ public class GroupRelationBuilder : MonoBehaviour {
     [SerializeField]
     List<Group> groupList;
 
-    public void Build()
-    {
-        //(1)建立Group(每1層由左下角開始水平掃描)
+    [SerializeField]
+    int[] BeginIndex;
+
+    [SerializeField]
+    int[] Count;
+    public List<Group>  GetGroupList() {
+        return groupList.GetRange(BeginIndex[nowFloorIndex], Count[nowFloorIndex]);
+    }
+
+    [SerializeField]
+    int nowFloorIndex;
+
+    void BeforeBuildGroup() {
         Tool.Clear(groupsContainer);
         Tool.Clear(elementsContainer);
         groupList = new List<Group>();
-        for (var f = 0; f < mahjongBuilder.GetFloor(); ++f) {
+        BeginIndex = new int[voxelBuilder.GetFloor()];
+        Count = new int[voxelBuilder.GetFloor()];
+    }
+
+    public void Build()
+    {
+        //(1)建立Group(每1層由左下角開始水平掃描)
+        BeforeBuildGroup();
+        for (var f = 0; f < voxelBuilder.GetFloor(); ++f) {
             BuildGroupInTheFloor(f);
         }
 
@@ -37,14 +55,15 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     Voxel GetVoxel(int floor,int y,int x){
-        return mahjongBuilder.GetVoxel(floor, y, x);
+        return voxelBuilder.GetVoxel(floor, y, x);
     }
 
     void BuildGroupInTheFloor(int floor)
     {
-        for (var y = 0; y < mahjongBuilder.CountY(); ++y)
+        var oldCount = groupList.Count;
+        for (var y = 0; y < voxelBuilder.CountY(); ++y)
         {
-            var lines =GetLines(floor, y);
+            var lines = GetLines(floor, y);
             for (var i = 0; i < lines.Count; ++i) {
                 var group = CreateGroup();
                 var voxels = lines[i];
@@ -56,12 +75,16 @@ public class GroupRelationBuilder : MonoBehaviour {
                     elementList.Add(element);
                 }
                 var voxelBegin = voxels[0];
-                var voxelEnd = voxels[voxels.Length-1];
+                var voxelEnd = voxels[voxels.Length - 1];
                 group.Setpos(voxelBegin);
                 group.Set(voxelBegin.floor, voxelBegin.y, voxelBegin.x, voxelEnd.x);
                 group.AddElements(elementList.ToArray());
                 groupList.Add(group);
             }
+        }
+        if (oldCount != groupList.Count) {
+            BeginIndex[floor] = oldCount;
+            Count[floor] = groupList.Count- oldCount;
         }
     }
 
@@ -82,7 +105,7 @@ public class GroupRelationBuilder : MonoBehaviour {
         bool adding=false;
 
         var x = 0;
-        while(x < mahjongBuilder.CountX())
+        while(x < voxelBuilder.CountX())
         {
             var voxel = GetVoxel(floor, y, x);
             if (voxel.IsUse())
@@ -108,5 +131,12 @@ public class GroupRelationBuilder : MonoBehaviour {
             batch.Add(line.ToArray());
 
         return batch;
+    }
+
+    public void SetNowFloorIndex(int offset)
+    {
+        var newIndex = nowFloorIndex + offset;
+        if (voxelBuilder.IsValidatedFloorIndex(newIndex))
+            nowFloorIndex = newIndex;
     }
 }

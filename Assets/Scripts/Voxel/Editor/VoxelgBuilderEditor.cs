@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using UnityEditor;
 
 [CustomEditor(typeof(VoxelBuilder))]
-public class MahjongBuilderEditor : UnityEditor.Editor
+public class VoxelBuilderEditor : UnityEditor.Editor
 {
-    VoxelBuilder mahjongMap;
+    VoxelBuilder voxelBuilder;
     void OnEnable()
     {
-        mahjongMap = (VoxelBuilder)target;
+        voxelBuilder = (VoxelBuilder)target;
     }
 
     public override void OnInspectorGUI()
@@ -18,20 +18,20 @@ public class MahjongBuilderEditor : UnityEditor.Editor
 
         if (GUILayout.Button("generateMap"))
         {
-            mahjongMap.SyncPos();
-            mahjongMap.GenerateMap();
+            voxelBuilder.SyncPos();
+            voxelBuilder.GenerateMap();
             SceneView.RepaintAll();
         }
 
         if (GUILayout.Button("Up"))
         {
-            mahjongMap.SetNowFloorIndex(1);
+            voxelBuilder.SetNowFloorIndex(1);
             SceneView.RepaintAll();
         }
 
         if (GUILayout.Button("Down"))
         {
-            mahjongMap.SetNowFloorIndex(-1);
+            voxelBuilder.SetNowFloorIndex(-1);
             SceneView.RepaintAll();
         }
     }
@@ -58,23 +58,23 @@ public class MahjongBuilderEditor : UnityEditor.Editor
             GetRay(mousePos, out from, out clickWorldPoint, out normalDir);
 
         //debug用
-        mahjongMap.SetClickPointOnRay(clickWorldPoint);
-        mahjongMap.SetClickNormalDir(normalDir);
+        voxelBuilder.SetClickPointOnRay(clickWorldPoint);
+        voxelBuilder.SetClickNormalDir(normalDir);
 
         int nowFloor, nowY, nowX;
         //mahjongMap的平面朝向是固定的，所以不作座標變換
-        bool isHit =mahjongMap.DoClick(from, normalDir,out nowFloor, out nowY, out nowX);
+        bool isHit =voxelBuilder.DoClick(from, normalDir,out nowFloor, out nowY, out nowX);
         if (!isHit)
             return;
 
         var funptr = DoWhat();
-        for (var y = 0; y < mahjongMap.GetAddCountY(); ++y) {
-            for (var x = 0; x < mahjongMap.GetAddCountX(); ++x){
-                var node = mahjongMap.GetVoxel(nowFloor, nowY+2*y, nowX+ 2 * x);
+        for (var y = 0; y < voxelBuilder.GetAddCountY(); ++y) {
+            for (var x = 0; x < voxelBuilder.GetAddCountX(); ++x){
+                var node = voxelBuilder.GetVoxel(nowFloor, nowY+2*y, nowX+ 2 * x);
                 if (node == null)
                     continue;
    
-                mahjongMap.DoOperation(node,funptr);
+                voxelBuilder.DoOperation(node,funptr);
             }
         }
         
@@ -83,16 +83,16 @@ public class MahjongBuilderEditor : UnityEditor.Editor
     VoxelBuilder.FuncPtr DoWhat()
     {
         VoxelBuilder.FuncPtr funptr;
-        switch (mahjongMap.GetOperation())
+        switch (voxelBuilder.GetOperation())
         {
             case EditOperation.Use:
-                funptr = mahjongMap.UseNode;
+                funptr = voxelBuilder.UseNode;
                 break;
             case EditOperation.NotUse:
-                funptr = mahjongMap.NotUseNode;
+                funptr = voxelBuilder.NotUseNode;
                 break;
             default:
-                funptr = mahjongMap.ReverseNode;
+                funptr = voxelBuilder.ReverseNode;
                 break;
         }
         return funptr;
@@ -103,7 +103,7 @@ public class MahjongBuilderEditor : UnityEditor.Editor
         mousePos.y = camera.pixelHeight - mousePos.y;//mousePos左上角是(0,0)
         from = camera.transform.position;
         //第3個參數的距離沿著camera forward的方向
-        clickWorldPoint = camera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, mahjongMap.GetClickPointDistance()));
+        clickWorldPoint = camera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, voxelBuilder.GetClickPointDistance()));
 
         normalDir = (clickWorldPoint - from).normalized;
     }
@@ -125,7 +125,7 @@ public class MahjongBuilderEditor : UnityEditor.Editor
         from = camera.transform.position+
             offsetY* camera.transform.up +
             offsetX* camera.transform.right;
-        clickWorldPoint = from+ camera.transform.forward*mahjongMap.GetClickPointDistance();
+        clickWorldPoint = from+ camera.transform.forward*voxelBuilder.GetClickPointDistance();
 
         normalDir = camera.transform.forward;
     }

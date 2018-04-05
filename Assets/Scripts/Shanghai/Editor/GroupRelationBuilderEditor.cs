@@ -21,5 +21,17 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
             groupRelationBuilder.Build();
             SceneView.RepaintAll();
         }
+
+        if (GUILayout.Button("Up"))
+        {
+            groupRelationBuilder.SetNowFloorIndex(1);
+            SceneView.RepaintAll();
+        }
+
+        if (GUILayout.Button("Down"))
+        {
+            groupRelationBuilder.SetNowFloorIndex(-1);
+            SceneView.RepaintAll();
+        }
     }
 }

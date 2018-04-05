@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEditor;
 
-public class MahjongBuilderDrawer
+public class VoxelBuilderDrawer
 {
     static Color SetValueColor = Color.red;
     static Color EvenPointColor = Color.blue;//偶數
