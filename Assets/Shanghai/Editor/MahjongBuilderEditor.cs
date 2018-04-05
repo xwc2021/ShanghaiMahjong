@@ -18,6 +18,7 @@ public class MahjongBuilderEditor : UnityEditor.Editor
 
         if (GUILayout.Button("generateMap"))
         {
+            mahjongMap.SyncPos();
             mahjongMap.GenerateMap();
             SceneView.RepaintAll();
         }

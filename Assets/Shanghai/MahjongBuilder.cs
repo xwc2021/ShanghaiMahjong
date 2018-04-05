@@ -11,7 +11,7 @@ public class MahjongBuilder : MonoBehaviour {
     public static float heightUnit = 0.5f;
 
     [SerializeField]
-    Transform collection;
+    MahjongTemplate mahjongTemplate;
 
     [SerializeField]
     EditOperation operation= EditOperation.Use;
@@ -32,9 +32,11 @@ public class MahjongBuilder : MonoBehaviour {
     public int GetAddCountY() { return addCountY; }
 
     [SerializeField]
-    Mahjong mahjongOdd;
+    GameObject mahjongOdd;
     [SerializeField]
-    Mahjong mahjongEven;
+    GameObject mahjongEven;
+    [SerializeField]
+    Mahjong mahjong;
 
     [SerializeField]
     [HideInInspector]
@@ -42,13 +44,17 @@ public class MahjongBuilder : MonoBehaviour {
 
     public int CountY() { return 2 * Y - 1; }
     public int CountX() { return 2 * X - 1; }
+
+    public void SyncPos()
+    {
+        mahjongTemplate.SyncPos(transform.position);
+    }
+
     public void GenerateMap()
     {
-        var count =collection.childCount;
-        for (var i = count - 1; i >= 0; --i)
-            DestroyImmediate(collection.GetChild(i).gameObject);
-
-        Debug.Log("clear count = " + count);
+        nowFloorIndex = 0;
+        Tool.Clear(transform);
+        mahjongTemplate.Clear();
 
         map3D = new Mahjong[Floor* CountY()* CountX()];
         var original = transform.position;
@@ -60,10 +66,10 @@ public class MahjongBuilder : MonoBehaviour {
             bool isOdd = f % 2 == 0;
             for (var y = 0; y < CountY(); ++y){
                 for (var x = 0; x < CountX(); ++x){
-                    var node =Instantiate<Mahjong>(isOdd? mahjongOdd : mahjongEven);
+                    var node =Instantiate<Mahjong>(mahjong);
                     node.transform.position = original + offsetXY + offsetFloor * f + offsetY * y + offsetX * x;
-                    node.transform.parent = collection;
-                    node.Init(f, y, x);
+                    node.transform.parent = transform;
+                    node.Init(f, y, x, isOdd );
                     var index = ReMap(f, y, x);
                     map3D[index] = node;
                 }
@@ -189,9 +195,16 @@ public class MahjongBuilder : MonoBehaviour {
             return;
 
         if (node.IsUse())
+        {
             node.SetIsUse(false);
+            RemoveVisible(node);
+        }
         else
+        {
             node.SetIsUse(true);
+            AddVisible(node);
+        }
+            
     }
 
     public void UseNode(Mahjong node)
@@ -201,6 +214,7 @@ public class MahjongBuilder : MonoBehaviour {
             return;
 
         node.SetIsUse(true);
+        AddVisible(node);
     }
 
     public void NotUseNode(Mahjong node)
@@ -210,6 +224,24 @@ public class MahjongBuilder : MonoBehaviour {
             return;
 
         node.SetIsUse(false);
+        RemoveVisible(node);
+    }
+
+    void AddVisible(Mahjong node)
+    {
+        if (node.visible != null)
+            return;
+
+        var obj =Instantiate<GameObject>(node.IsOdd() ? mahjongOdd : mahjongEven,mahjongTemplate.transform);
+        obj.transform.localPosition = node.transform.localPosition;
+        obj.name = node.name;
+        node.visible = obj;
+    }
+
+    void RemoveVisible(Mahjong node)
+    {
+        DestroyImmediate(node.visible);
+        node.visible = null;
     }
 
     Mahjong GetMapNode()

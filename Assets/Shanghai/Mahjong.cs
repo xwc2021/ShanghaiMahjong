@@ -7,24 +7,25 @@ public class Mahjong : MonoBehaviour {
     public static float HitRangeRadius = 0.2f;
 
     [SerializeField]
-    MeshRenderer meshRenderer;
+    bool isUse = false;
+    public bool IsUse() { return isUse; }
+    public void SetIsUse(bool b) { isUse = b; }
 
     [SerializeField]
-    bool isUse = false;
-
-    public bool IsUse() { return isUse; }
-    public void SetIsUse(bool b) { isUse = b; meshRenderer.enabled = b; }
+    bool isOdd = true;
+    public bool IsOdd() { return isOdd; }
 
     public int x;
     public int y;
     public int floor;
-    public void Init(int floor, int y,int x)
+    public GameObject visible;
+    public void Init(int floor, int y,int x,bool isOdd)
     {
         this.floor = floor;
         this.y = y;
         this.x = x;
+        this.isOdd = isOdd;
         name = floor + "," + y + "," + x;
-        meshRenderer = GetComponentInChildren<MeshRenderer>();
     }
 
     public bool IsHit(Vector3 hitPos) {
