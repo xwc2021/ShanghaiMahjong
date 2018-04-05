@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4863149474024572}
   - component: {fileID: 33651393573851260}
   - component: {fileID: 23109976477135076}
-  - component: {fileID: 65342202861460030}
   m_Layer: 0
   m_Name: MahjongCube
   m_TagString: Untagged
@@ -113,15 +112,3 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1400523971581842}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &65342202861460030
-BoxCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1400523971581842}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
