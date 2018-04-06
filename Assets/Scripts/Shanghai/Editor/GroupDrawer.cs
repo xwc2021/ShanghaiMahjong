@@ -18,5 +18,6 @@ public class GroupDrawer
         Gizmos.DrawLine(points[1], points[2]);
         Gizmos.DrawLine(points[2], points[3]);
         Gizmos.DrawLine(points[3], points[0]);
+        Gizmos.DrawSphere(group.transform.position, 0.2f);
     }
 }

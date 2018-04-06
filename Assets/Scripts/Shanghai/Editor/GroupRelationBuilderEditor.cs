@@ -65,10 +65,10 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
 
         int nowFloor, nowY, nowX;
         bool isHit = voxelBuilder.DoClick(localFrom, normalDir, out nowFloor, out nowY, out nowX,true);
-        Debug.Log(isHit);
         if (!isHit)
             return;
 
-        
+        var selectGroup=voxelBuilder.GetVoxel(nowFloor, nowY, nowX).group;
+        groupRelationBuilder.nowSelectGroup = selectGroup;
     }
 }

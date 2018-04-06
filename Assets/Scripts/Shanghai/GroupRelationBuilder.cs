@@ -261,16 +261,15 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     public List<Group>  GetGroupList() {
-        return GetGroupList(nowFloorIndex);
+        return GetGroupList(GetNotFloorIndex());
     }
+
+    int GetNotFloorIndex() { return voxelBuilder.GetNowFloorIndex(); }
 
     public List<Group> GetGroupList(int floor)
     {
         return groups.GetSegment(floor);
     }
-
-    [SerializeField]
-    int nowFloorIndex;
 
     void BeforeBuildGroup() {
         Tool.Clear(groupsContainer);
@@ -486,16 +485,14 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public void SetNowFloorIndex(int offset)
     {
-        var newIndex = nowFloorIndex + offset;
-        if (voxelBuilder.IsValidatedFloorIndex(newIndex))
-            nowFloorIndex = newIndex;
+        voxelBuilder.SetNowFloorIndex(offset);
     }
 
     public RelationManager relationManager;
 
     public List<GroupRelation> GetGroupLinks()
     {
-        return relationManager.GetGroupLinks(nowFloorIndex);
+        return relationManager.GetGroupLinks(GetNotFloorIndex());
     }
 
     public List<GroupRelation> GetTotalGroupLinks()
@@ -509,6 +506,7 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     public bool showTotalFloor=false;
+    public Group nowSelectGroup;
 }
 
 //https://answers.unity.com/questions/283191/how-do-i-detect-if-a-scene-is-being-loaded-during.html
