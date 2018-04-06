@@ -506,7 +506,12 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     public bool showTotalFloor=false;
-    public Group nowSelectGroup;
+
+    [SerializeField]
+     Group nowSelectGroup;
+    public Group GetNowSelectGroup() { return nowSelectGroup; }
+    public void SetNowSelectGroup(Group group) { nowSelectGroup=group; }
+    public void ClearNowSelectGroup() { nowSelectGroup=null; }
 }
 
 //https://answers.unity.com/questions/283191/how-do-i-detect-if-a-scene-is-being-loaded-during.html

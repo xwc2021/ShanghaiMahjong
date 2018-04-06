@@ -18,6 +18,7 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
 
         if (GUILayout.Button("Build Groups & Links"))
         {
+            groupRelationBuilder.ClearNowSelectGroup();
             groupRelationBuilder.BuildGroups();
             groupRelationBuilder.BuildLinks();
             SceneView.RepaintAll();
@@ -69,6 +70,6 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
             return;
 
         var selectGroup=voxelBuilder.GetVoxel(nowFloor, nowY, nowX).group;
-        groupRelationBuilder.nowSelectGroup = selectGroup;
+        groupRelationBuilder.SetNowSelectGroup(selectGroup);
     }
 }
