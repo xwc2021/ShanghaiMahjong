@@ -227,7 +227,35 @@ public class GroupRelationBuilder : MonoBehaviour {
         InjectDependence();
         AfterBuildDependence();
 
+        Debug.Log("BuildDependence");
+    }
+
+    void BeforeBuildDependence()
+    {
+        var elementList = GetElementsFromGroups(groupList);
+        foreach (var e in elementList)
+            e.BeforeBuildDependence();
+    }
+
+    void AfterBuildDependence()
+    {
+        var elementList = GetElementsFromGroups(groupList);
+        foreach (var e in elementList)
+            e.AfterBuildDependence();
+    }
+
+    public void InjectDependence()
+    {
         //(4)為Element寫入triggerCount和waitings
+        var downToUpLinks = relationManager.GetDownToUpLinks();
+        foreach (var elementRelation in downToUpLinks)
+            elementRelation.InjectDependence();
+
+        var groupLinks = relationManager.GetGroupLinks();
+        foreach (var groupRelation in groupLinks) {
+            var elementRelation=groupRelation.GetElementRelation();
+            elementRelation.InjectDependence();
+        }
     }
 
     void MakeLinksInTheFloor(int floor) {
