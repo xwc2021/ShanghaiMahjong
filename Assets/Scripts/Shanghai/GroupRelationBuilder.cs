@@ -6,18 +6,74 @@ using UnityEditor;
 
 //用來記錄相依性
 [System.Serializable]
-public class Relation {
+public class GroupRelation {
 
     [SerializeField]
-    Group from;//先
+    Group trigger;//先(前置條件)
+    public Group GetTrigger() { return trigger; }
 
     [SerializeField]
-    Group to;//後
+    Group waiting;//後
+    public Group GetWaiting() { return waiting; }
 
-    public Relation(Group from, Group to)
+    public GroupRelation(Group trigger, Group waiting)
     {
-        this.from = from;
-        this.to = to;
+        this.trigger = trigger;
+        this.waiting = waiting;
+    }
+
+    public GroupRelation GetReverseGroupRealtion()
+    {
+        return new GroupRelation(waiting, trigger);
+    }
+
+    public ElementRelation GetElementRelation() {
+        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
+        if (triggerX < waitingX)//trigger在左邊
+            return new ElementRelation(
+                    trigger.GetTailElement(),
+                    waiting.GetHeadElement());
+        else //trigger在右邊
+            return new ElementRelation(
+                    trigger.GetHeadElement(),
+                    waiting.GetTailElement());
+    }
+
+    public Element GetWaitingElement()
+    {
+        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
+        if (triggerX < waitingX)//trigger在左邊
+            return waiting.GetHeadElement();
+        else //trigger在右邊
+            return waiting.GetTailElement();
+    }
+
+    public Element GetTriggerElement()
+    {
+        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
+        if (triggerX < waitingX)//trigger在左邊
+            return trigger.GetTailElement();
+        else //trigger在右邊
+            return trigger.GetHeadElement();
+    }
+}
+
+//用來記錄相依性
+[System.Serializable]
+public class ElementRelation
+{
+    [SerializeField]
+    Element trigger;//先(前置條件)
+    public Element GetTrigger() { return trigger; }
+
+    [SerializeField]
+    Element waiting;//後
+    public Element GetWaiting() { return waiting; }
+
+    public ElementRelation(Element trigger, Element waiting)
+    {
+        this.trigger = trigger;
+        this.waiting = waiting;
     }
 }
 
@@ -25,25 +81,51 @@ public class Relation {
 public class RelationManager {
 
     public void BeforeBuild() {
-        downToUpLinks = new List<Relation>();
-        links = new List<Relation>();
+        downToUpLinks = new List<ElementRelation>();
+        groupLinks = new List<GroupRelation>();
     }
 
     [SerializeField]
-    List<Relation> downToUpLinks;//上下層之間的relation
+    List<ElementRelation> downToUpLinks;//上下層之間的ElementRelation
 
-    public void AddDownToUpLinks(Group from, Group to) {
-        downToUpLinks.Add(new Relation(from, to));
+    public void AddDownToUpLinks(Element trigger, Element waiting) {
+        downToUpLinks.Add(new ElementRelation(trigger, waiting));
     }
 
     [SerializeField]
-    List<Relation> links;//同1層Floor
+    List<GroupRelation> groupLinks;//同1層Floor的GroupRelation
 
-    Dictionary<Group, Relation> forwardLinks;//Key是from
-    Dictionary<Group, Relation> trackBackLinks;//Key是to
+    //讓使用者翻轉GroupRelation才會用到
+    Dictionary<Group, List<Group>> dicFromTriggerToWaiting;//Key是trigger，取得trigger的所有wating
+    Dictionary<Group, List<Group>> dicFromWaitingToTrigger;//Key是waiting，取得waiting的所有trigger
+
+    void FillDictionary(Group key,Group value, Dictionary<Group, List<Group>> dic)
+    {
+        if (!dic.ContainsKey(key))
+        {
+            var list = new List<Group>();
+            list.Add(value);
+            dic.Add(key, list);
+        }
+        else
+        {
+            var list = dic[key];
+            list.Add(value);
+        }
+    }
 
     public void ReBuildDictionary()
     {
+        dicFromTriggerToWaiting = new Dictionary<Group, List<Group>>();
+        dicFromWaitingToTrigger = new Dictionary<Group, List<Group>>();
+
+        foreach(var relation in groupLinks) {
+            var trigger =relation.GetTrigger();
+            var waiting = relation.GetWaiting();
+            FillDictionary(trigger, waiting, dicFromTriggerToWaiting);
+            FillDictionary(waiting,trigger,dicFromWaitingToTrigger);
+        }
+       
         Debug.Log("ReBuildDictionary");
     }
 }
@@ -91,6 +173,11 @@ public class GroupRelationBuilder : MonoBehaviour {
         Count = new int[voxelBuilder.GetFloor()];
     }
 
+    void BeforeBuildLink()
+    {
+        relationManager.BeforeBuild();
+    }
+
     public void Build()
     {
         //(1)建立Group(每1層由左下角開始水平掃描)
@@ -99,9 +186,13 @@ public class GroupRelationBuilder : MonoBehaviour {
             BuildGroupInTheFloor(f);
         }
 
+        BeforeBuildLink();
         //(2)每1層作Link(Relation)
         //(3)上下層作Link(Relation)
-        //(4)為Element綁定OutputTrigger和InputReceiver
+        for (var f = voxelBuilder.GetFloor() - 1; f >= 1; --f)
+            MakeLinkBetween2Floor(f, f - 1);
+
+        //(4)為Element寫入triggerCount和waitings
     }
 
     void MakeLinkBetween2Floor(int floor, int lowerFloor) {
@@ -114,6 +205,23 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     void MakeLinkToLowerFloor(Element element) {
+        //往下層測式9個點
+        var lowerFloor = element.floor-1; var y = element.y; var x = element.x;
+        var voxels = new Voxel[] {
+            GetVoxel(lowerFloor, y+1, x-1),
+            GetVoxel(lowerFloor, y, x-1),
+            GetVoxel(lowerFloor, y-1, x-1),
+            GetVoxel(lowerFloor, y+1, x),
+            GetVoxel(lowerFloor, y, x),
+            GetVoxel(lowerFloor, y-1, x),
+            GetVoxel(lowerFloor, y+1, x+1),
+            GetVoxel(lowerFloor, y, x+1),
+            GetVoxel(lowerFloor, y-1, x+1)
+        };
+        foreach (var v in voxels) {
+            if (v != null)
+                relationManager.AddDownToUpLinks(v.element, element);
+        }  
     }
 
     Voxel GetVoxel(int floor,int y,int x){
@@ -206,7 +314,6 @@ public class GroupRelationBuilder : MonoBehaviour {
             nowFloorIndex = newIndex;
     }
 
-    public Relation relation;
     public RelationManager relationManager;
 
 }

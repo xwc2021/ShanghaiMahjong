@@ -11,6 +11,10 @@ public enum GroupState {
 }
 public class Group : MonoBehaviour {
 
+    public float GetPosX() { return transform.position.x; }
+    public Element GetHeadElement() { return elements[0]; }
+    public Element GetTailElement() { return elements[elements.Length-1]; }
+
     public GroupState state;
     public bool hasDependence = false;
 

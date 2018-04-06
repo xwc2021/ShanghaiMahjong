@@ -12,18 +12,29 @@ public enum ElementState {
 public class Element : MonoBehaviour {
 
     public ElementState state;
+    public int floor;
+    public int y;
+    public int x;
 
-    OutputTrigger[] outputs;
-    InputReceiver input;
+    public int triggerCount;
+    public Element[] waiting;
 
     public void Set(Voxel voxel)
     {
         transform.localPosition = voxel.transform.localPosition;
         name = voxel.floor+","+ voxel.y+ "," + voxel.x;
+        this.floor = voxel.floor;
+        this.y = voxel.y;
+        this.x = voxel.x;
     }
 
     public void BeforeSuffle() {
-        outputs = GetComponents<OutputTrigger>();
-        input = GetComponent<InputReceiver>();
+
+    }
+
+    public void DoReceive()
+    {
+        //如果所有前置條件達成
+        //把自己所在的Group加進Game的groupList
     }
 }
