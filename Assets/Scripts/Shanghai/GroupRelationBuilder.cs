@@ -254,8 +254,13 @@ public class GroupRelationBuilder : MonoBehaviour {
     [SerializeField]
     GroupMSList groups;
 
+    public List<Group> GetTotalGroupList()
+    {
+        return groups.GetList();
+    }
+
     public List<Group>  GetGroupList() {
-        return groups.GetSegment(nowFloorIndex);
+        return GetGroupList(nowFloorIndex);
     }
 
     public List<Group> GetGroupList(int floor)
@@ -491,6 +496,18 @@ public class GroupRelationBuilder : MonoBehaviour {
     {
         return relationManager.GetGroupLinks(nowFloorIndex);
     }
+
+    public List<GroupRelation> GetTotalGroupLinks()
+    {
+        return relationManager.GetTotalGroupLinks();
+    }
+
+    public List<ElementRelation> GetDownToUpLinks()
+    {
+        return relationManager.GetDownToUpLinks();
+    }
+
+    public bool showTotalFloor=false;
 }
 
 //https://answers.unity.com/questions/283191/how-do-i-detect-if-a-scene-is-being-loaded-during.html
