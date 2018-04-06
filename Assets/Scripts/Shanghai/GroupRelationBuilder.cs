@@ -88,9 +88,11 @@ public class ElementRelation
 [System.Serializable]
 public class RelationManager {
 
-    public void BeforeBuild() {
+    public void BeforeBuild(int floorCount) {
         downToUpLinks = new List<ElementRelation>();
         groupLinks = new List<GroupRelation>();
+        groupLinksBeginIndex = new int[floorCount];
+        groupLinksCount = new int[floorCount];
     }
 
     [SerializeField]
@@ -102,8 +104,23 @@ public class RelationManager {
     }
 
     [SerializeField]
+    int[] groupLinksBeginIndex;
+    public void SetGroupLinksBeginIndex(int floor, int value) { groupLinksBeginIndex[floor] = value; }
+
+    [SerializeField]
+    int[] groupLinksCount;
+    public void SetGroupLinksCount(int floor, int value) { groupLinksCount[floor] = value; }
+
+    [SerializeField]
     List<GroupRelation> groupLinks;//同1層Floor的GroupRelation
     public List<GroupRelation> GetGroupLinks() { return groupLinks; }
+    static List<GroupRelation> Nothing=new List<GroupRelation>();
+    public List<GroupRelation> GetGroupLinks(int floor) {
+        if (groupLinksBeginIndex[floor] == Tool.NotInArray)
+            return Nothing;
+
+        return groupLinks.GetRange(groupLinksBeginIndex[floor], groupLinksCount[floor]);
+    }
 
     public void AddGrouppLink(Group trigger, Group waiting)
     {
@@ -165,16 +182,23 @@ public class GroupRelationBuilder : MonoBehaviour {
     List<Group> groupList;
 
     [SerializeField]
-    int[] BeginIndex;
+    int[] groupListBeginIndex;
+    public void SetBeginIndex(int floor,int value) { groupListBeginIndex[floor] = value; }
 
     [SerializeField]
-    int[] Count;
+    int[] groupListCount;
+    public void SetCount(int floor, int value) { groupListCount[floor] = value; }
+
     public List<Group>  GetGroupList() {
         return GetGroupList(nowFloorIndex);
     }
 
+    static List<Group> Nothing = new List<Group>();
     List<Group> GetGroupList(int floor) {
-        return groupList.GetRange(BeginIndex[floor], Count[floor]);
+        if (groupListBeginIndex[floor] == Tool.NotInArray)
+            return Nothing;
+
+        return groupList.GetRange(groupListBeginIndex[floor], groupListCount[floor]);
     }
 
     [SerializeField]
@@ -184,13 +208,13 @@ public class GroupRelationBuilder : MonoBehaviour {
         Tool.Clear(groupsContainer);
         Tool.Clear(elementsContainer);
         groupList = new List<Group>();
-        BeginIndex = new int[voxelBuilder.GetFloor()];
-        Count = new int[voxelBuilder.GetFloor()];
+        groupListBeginIndex = new int[voxelBuilder.GetFloor()];
+        groupListCount = new int[voxelBuilder.GetFloor()];
     }
 
     void BeforeBuildLink()
     {
-        relationManager.BeforeBuild();
+        relationManager.BeforeBuild(voxelBuilder.GetFloor());
     }
 
     void AfterBuildLink()
@@ -259,6 +283,7 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     void MakeLinksInTheFloor(int floor) {
+        var oldCount = relationManager.GetGroupLinks().Count;
         var groups =GetGroupList(floor);
         foreach (var g in groups) {
             var groupTail = g.GetTailElement();
@@ -274,6 +299,17 @@ public class GroupRelationBuilder : MonoBehaviour {
                 if (v != null && v.IsUse())
                     relationManager.AddGrouppLink(v.group,g );
             }
+        }
+        var newCount = relationManager.GetGroupLinks().Count;
+        if (oldCount != newCount)
+        {
+            relationManager.SetGroupLinksBeginIndex(floor,oldCount);
+            relationManager.SetGroupLinksCount(floor,newCount - oldCount);
+        }
+        else
+        {
+            relationManager.SetGroupLinksBeginIndex(floor,Tool.NotInArray);
+            relationManager.SetGroupLinksCount(floor,0);
         }
     }
 
@@ -344,9 +380,15 @@ public class GroupRelationBuilder : MonoBehaviour {
                 groupList.Add(group);
             }
         }
-        if (oldCount != groupList.Count) {
-            BeginIndex[floor] = oldCount;
-            Count[floor] = groupList.Count- oldCount;
+        var newCount = groupList.Count;
+        if (oldCount != newCount)
+        {
+            groupListBeginIndex[floor] = oldCount;
+            groupListCount[floor] = newCount - oldCount;
+        }
+        else {
+            groupListBeginIndex[floor] = Tool.NotInArray;
+            groupListCount[floor] = 0;
         }
     }
 
@@ -404,6 +446,10 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public RelationManager relationManager;
 
+    public List<GroupRelation> GetGroupLinks()
+    {
+        return relationManager.GetGroupLinks(nowFloorIndex);
+    }
 }
 
 //https://answers.unity.com/questions/283191/how-do-i-detect-if-a-scene-is-being-loaded-during.html
