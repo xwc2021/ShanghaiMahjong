@@ -24,18 +24,24 @@ public class GroupRelation
         this.waiting = waiting;
     }
 
-    public GroupRelation GetReverseGroupRealtion()
+    public void ReverseGroupRealtion()
     {
-        return new GroupRelation(waiting, trigger);
+        var temp = waiting;
+        waiting = trigger;
+        trigger = temp;
+    }
+
+    public bool IsRightSideLink() {
+        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
+        return triggerX < waitingX;
     }
 
     public ElementRelation GetElementRelation() {
-        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
-        if (triggerX < waitingX)//trigger在左邊
+        if (IsRightSideLink())
             return new ElementRelation(
                     trigger.GetTailElement(),
                     waiting.GetHeadElement());
-        else //trigger在右邊
+        else
             return new ElementRelation(
                     trigger.GetHeadElement(),
                     waiting.GetTailElement());
@@ -43,19 +49,17 @@ public class GroupRelation
 
     public Element GetWaitingElement()
     {
-        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
-        if (triggerX < waitingX)//trigger在左邊
+        if (IsRightSideLink())
             return waiting.GetHeadElement();
-        else //trigger在右邊
+        else
             return waiting.GetTailElement();
     }
 
     public Element GetTriggerElement()
     {
-        var triggerX = trigger.GetPosX(); var waitingX = waiting.GetPosX();
-        if (triggerX < waitingX)//trigger在左邊
+        if (IsRightSideLink())
             return trigger.GetTailElement();
-        else //trigger在右邊
+        else 
             return trigger.GetHeadElement();
     }
 }
@@ -201,14 +205,14 @@ public class RelationManager {
     }
 
     //讓使用者翻轉GroupRelation才會用到
-    Dictionary<Group, List<Group>> arrowsFromTriggerToWaiting;//key是trigger，trigger指向所有wating
-    Dictionary<Group, List<Group>> arrowsFromWaitingToTrigger;//key是waiting，waiting指向所有trigger
+    Dictionary<Group, List<GroupRelation>> outputArrows;//key是trigger
+    Dictionary<Group, List<GroupRelation>> inputArrows;//key是waiting
 
-    void FillDictionary(Group key,Group value, Dictionary<Group, List<Group>> arrows)
+    void FillDictionary(Group key,GroupRelation value, Dictionary<Group, List<GroupRelation>> arrows)
     {
         if (!arrows.ContainsKey(key))
         {
-            var list = new List<Group>();
+            var list = new List<GroupRelation>();
             list.Add(value);
             arrows.Add(key, list);
         }
@@ -221,17 +225,61 @@ public class RelationManager {
 
     public void ReBuildArrows()
     {
-        arrowsFromTriggerToWaiting = new Dictionary<Group, List<Group>>();
-        arrowsFromWaitingToTrigger = new Dictionary<Group, List<Group>>();
+        outputArrows = new Dictionary<Group, List<GroupRelation>>();
+        inputArrows = new Dictionary<Group, List<GroupRelation>>();
 
         foreach(var relation in groupLinks.GetList()) {
             var trigger =relation.GetTrigger();
             var waiting = relation.GetWaiting();
-            FillDictionary(trigger, waiting, arrowsFromTriggerToWaiting);
-            FillDictionary(waiting,trigger, arrowsFromWaitingToTrigger);
+            FillDictionary(trigger, relation, outputArrows);
+            FillDictionary(waiting, relation, inputArrows);
         }
        
         Debug.Log("ReBuildArrows OK");
+    }
+
+    public void ReverseInputArrow(Group group) {
+        ReBuildArrows();
+        if (!inputArrows.ContainsKey(group))
+            return;
+        var links = inputArrows[group];
+
+        Debug.Log(links.Count);
+        //轉向
+        foreach (var link in links)
+            link.ReverseGroupRealtion();
+    }
+
+    public void ReverseInputArrows(Group group)
+    {
+        ReBuildArrows();
+        if (!inputArrows.ContainsKey(group))
+            return;
+        var links = inputArrows[group];
+
+        var findingSet = new HashSet<GroupRelation>();
+        var queue = new List<GroupRelation>();
+        queue.AddRange(links.ToArray());
+        while (queue.Count > 0) {
+            //取出head放入findingList
+            var head = queue[0];
+            queue.Remove(head);
+
+            if(!findingSet.Contains(head))
+                findingSet.Add(head);
+            //再把head的所有links放入queue
+            if (inputArrows.ContainsKey(head.GetTrigger()))
+            {
+                var hisLinks = inputArrows[head.GetTrigger()];
+                queue.AddRange(hisLinks);
+            }
+                
+        }
+
+        Debug.Log(findingSet.Count);
+        //轉向
+        foreach (var link in findingSet)
+            link.ReverseGroupRealtion();
     }
 }
 
@@ -308,6 +356,16 @@ public class GroupRelationBuilder : MonoBehaviour {
             MakeLinkBetween2Floor(f, f - 1);
 
         AfterBuildLink();  
+    }
+
+    public void ReverseInputArrows()
+    {
+        relationManager.ReverseInputArrows(nowSelectGroup);
+    }
+
+    public void ReverseInputArrow()
+    {
+        relationManager.ReverseInputArrow(nowSelectGroup);
     }
 
     public void BuildDependence()
@@ -535,9 +593,6 @@ public static class WhenEditorOpen
     }
 
     static void CallGroupRelationBuilder() {
-        var groupRelationBuilder = GameObject.FindObjectOfType<GroupRelationBuilder>();
-        if (groupRelationBuilder == null)
-            return;
-        groupRelationBuilder.relationManager.ReBuildArrows();
+        //ReBuildArrows在對某個group執行Reverse再建就行了
     }
 }

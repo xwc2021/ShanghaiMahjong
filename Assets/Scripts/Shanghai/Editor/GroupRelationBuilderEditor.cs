@@ -23,12 +23,24 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
             groupRelationBuilder.BuildLinks();
             SceneView.RepaintAll();
         }
+
         if (GUILayout.Button("BuildDependence"))
         {
             groupRelationBuilder.BuildDependence();
             SceneView.RepaintAll();
         }
-        
+
+        if (GUILayout.Button("ReverseInputArrows"))
+        {
+            groupRelationBuilder.ReverseInputArrows();
+            SceneView.RepaintAll();
+        }
+
+        if (GUILayout.Button("ReverseInputArrow"))
+        {
+            groupRelationBuilder.ReverseInputArrow();
+            SceneView.RepaintAll();
+        }
 
         if (GUILayout.Button("Up"))
         {
