@@ -22,4 +22,46 @@ public class GeometryTool  {
         hitPos = from + t * dir;
         return true;
     }
+    static float clickPointDistance=10.0f;
+    static void GetShootingRayPerspective(Vector3 mousePos, out Vector3 from, out Vector3 clickWorldPoint, out Vector3 normalDir)
+    {
+        var camera = Camera.current;
+        mousePos.y = camera.pixelHeight - mousePos.y;//mousePos左上角是(0,0)
+        from = camera.transform.position;
+        //第3個參數的距離沿著camera forward的方向
+        clickWorldPoint = camera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, clickPointDistance));
+
+        normalDir = (clickWorldPoint - from).normalized;
+    }
+
+    //正交camera
+    static void GetGetShootingRayOrthographic(Vector3 mousePos, out Vector3 from, out Vector3 clickWorldPoint, out Vector3 normalDir)
+    {
+        var camera = Camera.current;
+        mousePos.y = camera.pixelHeight - mousePos.y;//mousePos左上角是(0,0)
+
+        var halfWidth = 0.5f * camera.pixelWidth;
+        var halfHeight = 0.5f * camera.pixelHeight;
+        var nx = (mousePos.x - halfWidth) / halfWidth;
+        var ny = (mousePos.y - halfHeight) / halfHeight;
+        var ratio = (float)camera.pixelWidth / camera.pixelHeight;
+
+        var offsetY = ny * camera.orthographicSize;
+        var offsetX = ratio * nx * camera.orthographicSize;
+        from = camera.transform.position +
+            offsetY * camera.transform.up +
+            offsetX * camera.transform.right;
+        clickWorldPoint = from + camera.transform.forward * clickPointDistance;
+
+        normalDir = camera.transform.forward;
+    }
+
+    public static void GetShootingRay(Vector3 mousePos, out Vector3 from, out Vector3 clickWorldPoint, out Vector3 normalDir)
+    {
+        var camera = Camera.current;
+        if (camera.orthographic)
+            GeometryTool.GetGetShootingRayOrthographic(mousePos, out from, out clickWorldPoint, out normalDir);
+        else
+            GeometryTool.GetShootingRayPerspective(mousePos, out from, out clickWorldPoint, out normalDir);
+    }
 }

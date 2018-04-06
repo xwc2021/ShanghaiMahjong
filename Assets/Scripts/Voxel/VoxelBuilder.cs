@@ -132,10 +132,6 @@ public class VoxelBuilder : MonoBehaviour {
     public Vector3 GetClickNormalDir() { return clickNormalDir; }
     public void SetClickNormalDir(Vector3 normalDir) { clickNormalDir = normalDir; }
 
-    [SerializeField]
-    int clickPointDistance = 10;
-    public int GetClickPointDistance() { return clickPointDistance; }
-
     Vector3 hitPoint;
     public Vector3 GetHitPoint() { return hitPoint; }
 
@@ -163,7 +159,7 @@ public class VoxelBuilder : MonoBehaviour {
         return true;
     }
 
-    public bool DoClick(Vector3 from ,Vector3 dir,out int floor,out int y,out int x)
+    public bool DoClick(Vector3 from ,Vector3 dir,out int floor,out int y,out int x,bool onlyUseVoxel = false)
     {
         floor = -1;
         x = -1;
@@ -173,19 +169,38 @@ public class VoxelBuilder : MonoBehaviour {
         if (!hit)
             return false;
 
-        var node=GetMapNode();
-        if (node == null)
+        var voxel= GetHitVoxel(hitPoint);
+        if (voxel == null)
             return false;
 
-        bool hitSphere = node.IsHit(hitPoint);
+        if (onlyUseVoxel)
+            if (!voxel.IsUse())
+                return false;
+
+        bool hitSphere = voxel.IsHit(hitPoint);
         if (!hitSphere)
             return false;
 
-        x = node.x;
-        y = node.y;
-        floor = node.floor;
+        x = voxel.x;
+        y = voxel.y;
+        floor = voxel.floor;
 
         return true;
+    }
+
+    Voxel GetHitVoxel(Vector3 hitPoint)
+    {
+        var offsetX = 0.25f * Vector3.right * VoxelBuilder.xUnit;
+        var offsetY = 0.25f * Vector3.forward * VoxelBuilder.yUnit;
+        var refPoint = transform.position + offsetX + offsetY;
+
+        var diff = (hitPoint - refPoint);
+        var halfXUnit = 0.5 * VoxelBuilder.xUnit;
+        var halfYUnit = 0.5 * VoxelBuilder.yUnit;
+        var x = (int)((diff.x - (diff.x % halfXUnit)) / halfXUnit);
+        var y = (int)((diff.z - (diff.z % halfYUnit)) / halfYUnit);
+
+        return GetVoxel(nowFloorIndex, y, x);
     }
 
     public void ReverseNode(Voxel node)
@@ -242,20 +257,5 @@ public class VoxelBuilder : MonoBehaviour {
     {
         DestroyImmediate(node.visible);
         node.visible = null;
-    }
-
-    Voxel GetMapNode()
-    {
-        var offsetX = 0.25f * Vector3.right * VoxelBuilder.xUnit;
-        var offsetY = 0.25f * Vector3.forward * VoxelBuilder.yUnit;
-        var refPoint = transform.position + offsetX + offsetY;
-
-        var diff = (hitPoint - refPoint);
-        var halfXUnit = 0.5 * VoxelBuilder.xUnit;
-        var halfYUnit = 0.5 * VoxelBuilder.yUnit;
-        var x = (int)((diff.x-(diff.x % halfXUnit))/ halfXUnit);
-        var y = (int)((diff.z-(diff.z % halfYUnit))/ halfYUnit);
-
-        return GetVoxel(nowFloorIndex, y, x);
     }
 }

@@ -247,6 +247,7 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     [SerializeField]
     VoxelBuilder voxelBuilder;
+    public VoxelBuilder GetVoxelBuilder() { return voxelBuilder; }
 
     [SerializeField]
     Game game;

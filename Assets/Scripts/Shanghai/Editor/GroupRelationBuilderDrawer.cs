@@ -9,7 +9,7 @@ public class GroupRelationBuilderDrawer
     static void DrawGizmoFor(GroupRelationBuilder target, GizmoType gizmoType)
     {
         if (!target.showTotalFloor) {
-            DrawGroupAndGroupLinks(target.GetGroupList(), target.GetGroupLinks());
+            DrawGroupAndGroupLinks(target.GetGroupList(), target.GetGroupLinks(),GetSingleColor);
         }
         else
         {
@@ -17,15 +17,14 @@ public class GroupRelationBuilderDrawer
             foreach (var link in downToUpLinks)
                 DrawElementLink(link, downToUpLinkColor);
 
-            DrawGroupAndGroupLinks(target.GetTotalGroupList(), target.GetTotalGroupLinks());
+            DrawGroupAndGroupLinks(target.GetTotalGroupList(), target.GetTotalGroupLinks(),GetRandomColor);
         }
     }
 
-    static void DrawGroupAndGroupLinks(List<Group> groups,List<GroupRelation> groupLinks)
+    static void DrawGroupAndGroupLinks(List<Group> groups,List<GroupRelation> groupLinks, GetColor getColorFunc)
     {
-        colorIndex = -1;
         foreach (var g in groups)
-            GroupDrawer.DrawGroup(g, GetColor());
+            GroupDrawer.DrawGroup(g, getColorFunc());
 
         foreach (var link in groupLinks)
             DrawElementLink(link.GetElementRelation(), GroupRelationColor);
@@ -33,7 +32,10 @@ public class GroupRelationBuilderDrawer
 
     static int colorIndex;
     static Color[] colors=new Color[] {Color.red,Color.green,Color.blue,Color.yellow };
-    static Color GetColor() {
+
+    delegate Color GetColor();
+    static Color GetSingleColor() { return Color.black; }
+    static Color GetRandomColor() {
         colorIndex = (colorIndex + 1) % colors.Length;
         return colors[colorIndex];
     }
