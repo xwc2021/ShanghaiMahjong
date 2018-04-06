@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.SceneManagement;
 using UnityEditor;
+using System;
 
 //用來記錄相依性
 [System.Serializable]
-public class GroupRelation {
+public class GroupRelation
+{
 
     [SerializeField]
     Group trigger;//先(前置條件)
@@ -86,13 +88,88 @@ public class ElementRelation
 }
 
 [System.Serializable]
+public class MultiSegmentList<T>
+{
+    static int NotInArray = -1;
+    static List<T> Nothing = new List<T>();
+
+    public MultiSegmentList(int count)
+    {
+        list = new List<T>();
+        SegmentBeginIndex = new int[count];
+        SegmentCount = new int[count];
+    }
+
+    [SerializeField]
+    List<T> list;
+
+    [SerializeField]
+    int[] SegmentBeginIndex;
+    public void SetGroupLinksBeginIndex(int index, int value) { SegmentBeginIndex[index] = value; }
+
+    [SerializeField]
+    int[] SegmentCount;
+    public void SetGroupLinksCount(int index, int value) { SegmentCount[index] = value; }
+
+    public List<T> GetList() { return list; }
+
+    public List<T> GetSegment(int index)
+    {
+        if (SegmentBeginIndex[index] == NotInArray)
+            return Nothing;
+
+        return list.GetRange(SegmentBeginIndex[index], SegmentCount[index]);
+    }
+
+    public void Add(T item) {
+        list.Add(item);
+    }
+
+    int oldCount;
+    public void BeginRecord()
+    {
+        oldCount = list.Count;
+    }
+
+    public void EndRecord(int index)
+    {
+        var newCount = list.Count;
+        if (oldCount != newCount)
+        {
+            SegmentBeginIndex[index] = oldCount;
+            SegmentCount[index] = newCount - oldCount;
+        }
+        else
+        {
+            SegmentBeginIndex[index] = NotInArray;
+            SegmentCount[index] = 0;
+        }
+    }
+}
+
+//如何讓Unity的Inspector可以接受泛型序列化
+//https://forum.unity.com/threads/how-do-you-get-a-generic-template-class-to-show-in-the-inspector.341367/
+[System.Serializable]
+public class GroupRelationMSList : MultiSegmentList<GroupRelation>
+{
+    public GroupRelationMSList(int count):base(count){
+    }
+}
+
+[System.Serializable]
+public class GroupMSList : MultiSegmentList<Group>
+{
+    public GroupMSList(int count) : base(count)
+    {
+    }
+}
+
+[System.Serializable]
 public class RelationManager {
 
     public void BeforeBuild(int floorCount) {
         downToUpLinks = new List<ElementRelation>();
-        groupLinks = new List<GroupRelation>();
-        groupLinksBeginIndex = new int[floorCount];
-        groupLinksCount = new int[floorCount];
+        groupLinks = new GroupRelationMSList(floorCount);
     }
 
     [SerializeField]
@@ -104,23 +181,19 @@ public class RelationManager {
     }
 
     [SerializeField]
-    int[] groupLinksBeginIndex;
-    public void SetGroupLinksBeginIndex(int floor, int value) { groupLinksBeginIndex[floor] = value; }
+    GroupRelationMSList groupLinks;//同1層Floor的GroupRelation
+    public void GroupLinksBeginRecord(){groupLinks.BeginRecord();}
+    public void GroupLinksEndRecord(int floor) {groupLinks.EndRecord(floor);}
 
-    [SerializeField]
-    int[] groupLinksCount;
-    public void SetGroupLinksCount(int floor, int value) { groupLinksCount[floor] = value; }
-
-    [SerializeField]
-    List<GroupRelation> groupLinks;//同1層Floor的GroupRelation
-    public List<GroupRelation> GetGroupLinks() { return groupLinks; }
-    static List<GroupRelation> Nothing=new List<GroupRelation>();
-    public List<GroupRelation> GetGroupLinks(int floor) {
-        if (groupLinksBeginIndex[floor] == Tool.NotInArray)
-            return Nothing;
-
-        return groupLinks.GetRange(groupLinksBeginIndex[floor], groupLinksCount[floor]);
+    public List<GroupRelation> GetTotalGroupLinks()
+    {
+        return groupLinks.GetList();
     }
+    public List<GroupRelation> GetGroupLinks(int floor)
+    {
+        return groupLinks.GetSegment(floor);
+    }
+
 
     public void AddGrouppLink(Group trigger, Group waiting)
     {
@@ -151,14 +224,14 @@ public class RelationManager {
         arrowsFromTriggerToWaiting = new Dictionary<Group, List<Group>>();
         arrowsFromWaitingToTrigger = new Dictionary<Group, List<Group>>();
 
-        foreach(var relation in groupLinks) {
+        foreach(var relation in groupLinks.GetList()) {
             var trigger =relation.GetTrigger();
             var waiting = relation.GetWaiting();
             FillDictionary(trigger, waiting, arrowsFromTriggerToWaiting);
             FillDictionary(waiting,trigger, arrowsFromWaitingToTrigger);
         }
        
-        Debug.Log("ReBuildArrows");
+        Debug.Log("ReBuildArrows OK");
     }
 }
 
@@ -179,26 +252,15 @@ public class GroupRelationBuilder : MonoBehaviour {
     Game game;
 
     [SerializeField]
-    List<Group> groupList;
-
-    [SerializeField]
-    int[] groupListBeginIndex;
-    public void SetBeginIndex(int floor,int value) { groupListBeginIndex[floor] = value; }
-
-    [SerializeField]
-    int[] groupListCount;
-    public void SetCount(int floor, int value) { groupListCount[floor] = value; }
+    GroupMSList groups;
 
     public List<Group>  GetGroupList() {
-        return GetGroupList(nowFloorIndex);
+        return groups.GetSegment(nowFloorIndex);
     }
 
-    static List<Group> Nothing = new List<Group>();
-    List<Group> GetGroupList(int floor) {
-        if (groupListBeginIndex[floor] == Tool.NotInArray)
-            return Nothing;
-
-        return groupList.GetRange(groupListBeginIndex[floor], groupListCount[floor]);
+    public List<Group> GetGroupList(int floor)
+    {
+        return groups.GetSegment(floor);
     }
 
     [SerializeField]
@@ -207,9 +269,7 @@ public class GroupRelationBuilder : MonoBehaviour {
     void BeforeBuildGroup() {
         Tool.Clear(groupsContainer);
         Tool.Clear(elementsContainer);
-        groupList = new List<Group>();
-        groupListBeginIndex = new int[voxelBuilder.GetFloor()];
-        groupListCount = new int[voxelBuilder.GetFloor()];
+        groups = new GroupMSList(voxelBuilder.GetFloor());
     }
 
     void BeforeBuildLink()
@@ -256,14 +316,14 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     void BeforeBuildDependence()
     {
-        var elementList = GetElementsFromGroups(groupList);
+        var elementList = GetElementsFromGroups(groups.GetList());
         foreach (var e in elementList)
             e.BeforeBuildDependence();
     }
 
     void AfterBuildDependence()
     {
-        var elementList = GetElementsFromGroups(groupList);
+        var elementList = GetElementsFromGroups(groups.GetList());
         foreach (var e in elementList)
             e.AfterBuildDependence();
     }
@@ -275,7 +335,7 @@ public class GroupRelationBuilder : MonoBehaviour {
         foreach (var elementRelation in downToUpLinks)
             elementRelation.InjectDependence();
 
-        var groupLinks = relationManager.GetGroupLinks();
+        var groupLinks = relationManager.GetTotalGroupLinks();
         foreach (var groupRelation in groupLinks) {
             var elementRelation=groupRelation.GetElementRelation();
             elementRelation.InjectDependence();
@@ -283,7 +343,7 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     void MakeLinksInTheFloor(int floor) {
-        var oldCount = relationManager.GetGroupLinks().Count;
+        relationManager.GroupLinksBeginRecord();
         var groups =GetGroupList(floor);
         foreach (var g in groups) {
             var groupTail = g.GetTailElement();
@@ -300,17 +360,7 @@ public class GroupRelationBuilder : MonoBehaviour {
                     relationManager.AddGrouppLink(v.group,g );
             }
         }
-        var newCount = relationManager.GetGroupLinks().Count;
-        if (oldCount != newCount)
-        {
-            relationManager.SetGroupLinksBeginIndex(floor,oldCount);
-            relationManager.SetGroupLinksCount(floor,newCount - oldCount);
-        }
-        else
-        {
-            relationManager.SetGroupLinksBeginIndex(floor,Tool.NotInArray);
-            relationManager.SetGroupLinksCount(floor,0);
-        }
+        relationManager.GroupLinksEndRecord(floor);
     }
 
     List<Element> GetElementsFromGroups(List<Group> groups) {
@@ -354,7 +404,7 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     void BuildGroupInTheFloor(int floor)
     {
-        var oldCount = groupList.Count;
+        groups.BeginRecord();
         for (var y = 0; y < voxelBuilder.CountY(); ++y)
         {
             var lines = GetLines(floor, y);
@@ -377,19 +427,10 @@ public class GroupRelationBuilder : MonoBehaviour {
                 group.Setpos(voxelBegin);
                 group.Set(voxelBegin.floor, voxelBegin.y, voxelBegin.x, voxelEnd.x);
                 group.AddElements(elementList.ToArray());
-                groupList.Add(group);
+                groups.Add(group);
             }
         }
-        var newCount = groupList.Count;
-        if (oldCount != newCount)
-        {
-            groupListBeginIndex[floor] = oldCount;
-            groupListCount[floor] = newCount - oldCount;
-        }
-        else {
-            groupListBeginIndex[floor] = Tool.NotInArray;
-            groupListCount[floor] = 0;
-        }
+        groups.EndRecord(floor);
     }
 
     Group CreateGroup()

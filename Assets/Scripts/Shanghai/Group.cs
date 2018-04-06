@@ -9,7 +9,8 @@ public enum GroupState {
     GameReady,//整條都洗牌完了
     GameFinish//玩家已經清掉整條
 }
-public class Group : MonoBehaviour {
+public class Group : MonoBehaviour
+{
 
     public float GetPosX() { return transform.position.x; }
     public Element GetHeadElement() { return elements[0]; }

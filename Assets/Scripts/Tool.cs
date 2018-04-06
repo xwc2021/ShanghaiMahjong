@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Tool  {
-    public static int NotInArray = -1;
 
     public static void Clear(Transform transform)
     {
