@@ -16,11 +16,18 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
     {
         DrawDefaultInspector();
 
-        if (GUILayout.Button("Build"))
+        if (GUILayout.Button("Build Groups & Links"))
         {
-            groupRelationBuilder.Build();
+            groupRelationBuilder.BuildGroups();
+            groupRelationBuilder.BuildLinks();
             SceneView.RepaintAll();
         }
+        if (GUILayout.Button("BuildDependence"))
+        {
+            groupRelationBuilder.BuildDependence();
+            SceneView.RepaintAll();
+        }
+        
 
         if (GUILayout.Button("Up"))
         {

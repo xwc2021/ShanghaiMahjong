@@ -75,6 +75,14 @@ public class ElementRelation
         this.trigger = trigger;
         this.waiting = waiting;
     }
+
+    public void InjectDependence()
+    {
+        var trigger = GetTrigger();
+        var waiting = GetWaiting();
+        trigger.AddWaiting(waiting);
+        waiting.AddTriggerCount();
+    }
 }
 
 [System.Serializable]
@@ -87,6 +95,7 @@ public class RelationManager {
 
     [SerializeField]
     List<ElementRelation> downToUpLinks;//上下層之間的ElementRelation
+    public List<ElementRelation> GetDownToUpLinks() { return downToUpLinks; }
 
     public void AddDownToUpLink(Element trigger, Element waiting) {
         downToUpLinks.Add(new ElementRelation(trigger, waiting));
@@ -94,6 +103,7 @@ public class RelationManager {
 
     [SerializeField]
     List<GroupRelation> groupLinks;//同1層Floor的GroupRelation
+    public List<GroupRelation> GetGroupLinks() { return groupLinks; }
 
     public void AddGrouppLink(Group trigger, Group waiting)
     {
@@ -188,14 +198,17 @@ public class GroupRelationBuilder : MonoBehaviour {
         relationManager.ReBuildArrows();
     }
 
-    public void Build()
-    {
+    public void BuildGroups() {
         //(1)建立Group(每1層由左下角開始水平掃描)
         BeforeBuildGroup();
-        for (var f = 0; f < voxelBuilder.GetFloor(); ++f) {
+        for (var f = 0; f < voxelBuilder.GetFloor(); ++f)
+        {
             BuildGroupInTheFloor(f);
         }
+    }
 
+    public void BuildLinks()
+    {
         BeforeBuildLink();
         //(2)每1層作Link(Relation)
         for (var f = 0; f < voxelBuilder.GetFloor(); ++f)
@@ -205,7 +218,14 @@ public class GroupRelationBuilder : MonoBehaviour {
         for (var f = voxelBuilder.GetFloor() - 1; f >= 1; --f)
             MakeLinkBetween2Floor(f, f - 1);
 
-        //AfterBuildLink();
+        AfterBuildLink();  
+    }
+
+    public void BuildDependence()
+    {
+        BeforeBuildDependence();
+        InjectDependence();
+        AfterBuildDependence();
 
         //(4)為Element寫入triggerCount和waitings
     }
@@ -229,11 +249,16 @@ public class GroupRelationBuilder : MonoBehaviour {
         }
     }
 
-    void MakeLinkBetween2Floor(int floor, int lowerFloor) {
-        var groups = GetGroupList(floor);
+    List<Element> GetElementsFromGroups(List<Group> groups) {
         var elementList = new List<Element>();
         foreach (var g in groups)
             elementList.AddRange(g.GetElements());
+        return elementList;
+    }
+
+    void MakeLinkBetween2Floor(int floor, int lowerFloor) {
+        var groups = GetGroupList(floor);
+        var elementList = GetElementsFromGroups(groups);
         foreach (var e in elementList)
             MakeLinkToLowerFloor(e);
     }

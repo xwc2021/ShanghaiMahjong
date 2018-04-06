@@ -16,9 +16,6 @@ public class Element : MonoBehaviour {
     public int y;
     public int x;
 
-    public int triggerCount;
-    public Element[] waiting;
-
     public void Set(Voxel voxel)
     {
         transform.localPosition = voxel.transform.localPosition;
@@ -36,5 +33,42 @@ public class Element : MonoBehaviour {
     {
         //如果所有前置條件達成
         //把自己所在的Group加進Game的groupList
+    }
+
+    public Vector3[] GetRect()
+    {
+        var center = transform.position;
+        var offsetX = 0.5f * VoxelBuilder.xUnit * Vector3.right;
+        var offsetY = 0.5f * VoxelBuilder.yUnit * Vector3.forward;
+        return new Vector3[] {//從左下角開始逆時鐘方向轉1圈
+            center- offsetX- offsetY,
+            center+ offsetX- offsetY,
+            center+ offsetX+ offsetY,
+            center- offsetX+ offsetY
+        };
+    }
+
+    public int triggerCount;
+    public Element[] waiting;
+    List<Element> tempList;
+    public void BeforeBuildDependence() {
+        triggerCount = 0;
+        waiting = null;
+        tempList = new List<Element>();
+    }
+    public void AddWaiting(Element waiting) {
+        tempList.Add(waiting);
+    }
+    public void AddTriggerCount()
+    {
+        triggerCount++;
+    }
+    public void AfterBuildDependence()
+    {
+        if (tempList.Count > 0)
+        {
+            waiting = tempList.ToArray();
+            tempList = null;
+        }   
     }
 }
