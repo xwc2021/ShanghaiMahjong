@@ -215,14 +215,24 @@ public class GroupRelationBuilder : MonoBehaviour {
 [InitializeOnLoad]
 public static class WhenEditorOpen
 {
+    //開啟Unity後這裡會執行2次
+    //(因為Unity會重新輯譯1次Script檔)
     static WhenEditorOpen()
     {
+        Debug.Log("WhenEditorOpen");
         EditorSceneManager.sceneOpened +=SceneOpenedCallback;
+
+        //上面的callback要在開啟Untiy後，重新開啟1個Scene才會觸發
+        CallGroupRelationBuilder();
     }
 
     static void SceneOpenedCallback(UnityEngine.SceneManagement.Scene scene, OpenSceneMode mode)
     {
-        var groupRelationBuilder=GameObject.FindObjectOfType<GroupRelationBuilder>();
+        CallGroupRelationBuilder();
+    }
+
+    static void CallGroupRelationBuilder() {
+        var groupRelationBuilder = GameObject.FindObjectOfType<GroupRelationBuilder>();
         if (groupRelationBuilder == null)
             return;
         groupRelationBuilder.relationManager.ReBuildDictionary();
