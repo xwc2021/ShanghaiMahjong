@@ -88,45 +88,50 @@ public class RelationManager {
     [SerializeField]
     List<ElementRelation> downToUpLinks;//上下層之間的ElementRelation
 
-    public void AddDownToUpLinks(Element trigger, Element waiting) {
+    public void AddDownToUpLink(Element trigger, Element waiting) {
         downToUpLinks.Add(new ElementRelation(trigger, waiting));
     }
 
     [SerializeField]
     List<GroupRelation> groupLinks;//同1層Floor的GroupRelation
 
-    //讓使用者翻轉GroupRelation才會用到
-    Dictionary<Group, List<Group>> dicFromTriggerToWaiting;//Key是trigger，取得trigger的所有wating
-    Dictionary<Group, List<Group>> dicFromWaitingToTrigger;//Key是waiting，取得waiting的所有trigger
-
-    void FillDictionary(Group key,Group value, Dictionary<Group, List<Group>> dic)
+    public void AddGrouppLink(Group trigger, Group waiting)
     {
-        if (!dic.ContainsKey(key))
+        groupLinks.Add(new GroupRelation(trigger, waiting));
+    }
+
+    //讓使用者翻轉GroupRelation才會用到
+    Dictionary<Group, List<Group>> arrowsFromTriggerToWaiting;//key是trigger，trigger指向所有wating
+    Dictionary<Group, List<Group>> arrowsFromWaitingToTrigger;//key是waiting，waiting指向所有trigger
+
+    void FillDictionary(Group key,Group value, Dictionary<Group, List<Group>> arrows)
+    {
+        if (!arrows.ContainsKey(key))
         {
             var list = new List<Group>();
             list.Add(value);
-            dic.Add(key, list);
+            arrows.Add(key, list);
         }
         else
         {
-            var list = dic[key];
+            var list = arrows[key];
             list.Add(value);
         }
     }
 
-    public void ReBuildDictionary()
+    public void ReBuildArrows()
     {
-        dicFromTriggerToWaiting = new Dictionary<Group, List<Group>>();
-        dicFromWaitingToTrigger = new Dictionary<Group, List<Group>>();
+        arrowsFromTriggerToWaiting = new Dictionary<Group, List<Group>>();
+        arrowsFromWaitingToTrigger = new Dictionary<Group, List<Group>>();
 
         foreach(var relation in groupLinks) {
             var trigger =relation.GetTrigger();
             var waiting = relation.GetWaiting();
-            FillDictionary(trigger, waiting, dicFromTriggerToWaiting);
-            FillDictionary(waiting,trigger,dicFromWaitingToTrigger);
+            FillDictionary(trigger, waiting, arrowsFromTriggerToWaiting);
+            FillDictionary(waiting,trigger, arrowsFromWaitingToTrigger);
         }
        
-        Debug.Log("ReBuildDictionary");
+        Debug.Log("ReBuildArrows");
     }
 }
 
@@ -178,6 +183,11 @@ public class GroupRelationBuilder : MonoBehaviour {
         relationManager.BeforeBuild();
     }
 
+    void AfterBuildLink()
+    {
+        relationManager.ReBuildArrows();
+    }
+
     public void Build()
     {
         //(1)建立Group(每1層由左下角開始水平掃描)
@@ -188,11 +198,35 @@ public class GroupRelationBuilder : MonoBehaviour {
 
         BeforeBuildLink();
         //(2)每1層作Link(Relation)
+        for (var f = 0; f < voxelBuilder.GetFloor(); ++f)
+            MakeLinksInTheFloor(f);
+
         //(3)上下層作Link(Relation)
         for (var f = voxelBuilder.GetFloor() - 1; f >= 1; --f)
             MakeLinkBetween2Floor(f, f - 1);
 
+        //AfterBuildLink();
+
         //(4)為Element寫入triggerCount和waitings
+    }
+
+    void MakeLinksInTheFloor(int floor) {
+        var groups =GetGroupList(floor);
+        foreach (var g in groups) {
+            var groupTail = g.GetTailElement();
+            //https://plus.google.com/u/0/+XiangweiChiou/posts/aCJpgroisHx
+            //groupTail往右測式2個voxel
+            var y = groupTail.y; var x = groupTail.x;
+            var voxels = new Voxel[] {
+                GetVoxel(floor, y+1, x+2),
+                GetVoxel(floor, y-1, x+2)
+            };
+            foreach (var v in voxels)
+            {
+                if (v != null && v.IsUse())
+                    relationManager.AddGrouppLink(v.group,g );
+            }
+        }
     }
 
     void MakeLinkBetween2Floor(int floor, int lowerFloor) {
@@ -205,7 +239,8 @@ public class GroupRelationBuilder : MonoBehaviour {
     }
 
     void MakeLinkToLowerFloor(Element element) {
-        //往下層測式9個點
+        //https://plus.google.com/u/0/+XiangweiChiou/posts/aCJpgroisHx
+        //往下層測式9個voxel
         var lowerFloor = element.floor-1; var y = element.y; var x = element.x;
         var voxels = new Voxel[] {
             GetVoxel(lowerFloor, y+1, x-1),
@@ -219,8 +254,8 @@ public class GroupRelationBuilder : MonoBehaviour {
             GetVoxel(lowerFloor, y-1, x+1)
         };
         foreach (var v in voxels) {
-            if (v != null)
-                relationManager.AddDownToUpLinks(v.element, element);
+            if (v != null && v.IsUse())
+                relationManager.AddDownToUpLink(v.element, element);
         }  
     }
 
@@ -342,6 +377,6 @@ public static class WhenEditorOpen
         var groupRelationBuilder = GameObject.FindObjectOfType<GroupRelationBuilder>();
         if (groupRelationBuilder == null)
             return;
-        groupRelationBuilder.relationManager.ReBuildDictionary();
+        groupRelationBuilder.relationManager.ReBuildArrows();
     }
 }

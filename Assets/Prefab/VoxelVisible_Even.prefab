@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33573211536697352}
   - component: {fileID: 23550818367184636}
   m_Layer: 0
-  m_Name: MahjongCube
+  m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63,7 +63,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1836961228716168}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.531595, y: 3.5633545, z: -0.19471169}
+  m_LocalPosition: {x: -0.45888805, y: 8.242938, z: 6.9456854}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4543679854044188}
