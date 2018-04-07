@@ -47,12 +47,6 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
             groupRelationBuilder.SetNowFloorIndex(-1);
             SceneView.RepaintAll();
         }
-
-        if (GUILayout.Button("BuildForGame"))
-        {
-            groupRelationBuilder.BuildForGame();
-            SceneView.RepaintAll();
-        }
     }
 
     public void OnSceneGUI()

@@ -9,7 +9,6 @@ using System;
 [System.Serializable]
 public class GroupRelation
 {
-
     [SerializeField]
     Group trigger;//先(前置條件)
     public Group GetTrigger() { return trigger; }
@@ -204,11 +203,9 @@ public class RelationManager {
         groupLinks.Add(new GroupRelation(trigger, waiting));
     }
 
-    //讓使用者翻轉GroupRelation才會用到
     Dictionary<Group, List<GroupRelation>> outputArrows;//key是trigger
-    public Dictionary<Group, List<GroupRelation>> GetOutputArrows() { return outputArrows; }
     Dictionary<Group, List<GroupRelation>> inputArrows;//key是waiting
-    public Dictionary<Group, List<GroupRelation>> GetInputArrows() { return inputArrows; }
+    public bool HasGroupRelation(Group group) { return inputArrows.ContainsKey(group); }
 
     void FillDictionary(Group key,GroupRelation value, Dictionary<Group, List<GroupRelation>> arrows)
     {
@@ -225,7 +222,7 @@ public class RelationManager {
         }
     }
 
-    public void BuildGroupDependence()
+    public void BuildGroupDependenceSearchHelper()
     {
         outputArrows = new Dictionary<Group, List<GroupRelation>>();
         inputArrows = new Dictionary<Group, List<GroupRelation>>();
@@ -237,11 +234,11 @@ public class RelationManager {
             FillDictionary(waiting, relation, inputArrows);
         }
        
-        Debug.Log("ReBuildArrows OK");
+        Debug.Log("BuildGroupDependenceSearchHelper");
     }
 
     public void ReverseInputArrow(Group group) {
-        BuildGroupDependence();
+        BuildGroupDependenceSearchHelper();
         if (!inputArrows.ContainsKey(group))
         {
             Debug.Log("Can not find input arrow");
@@ -257,7 +254,7 @@ public class RelationManager {
 
     public void ReverseInputArrows(Group group)
     {
-        BuildGroupDependence();
+        BuildGroupDependenceSearchHelper();
         if (!inputArrows.ContainsKey(group))
         {
             Debug.Log("Can not find input arrow");
@@ -307,6 +304,11 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     [SerializeField]
     Game game;
+
+    public void AddToShufflingSet(Group group)
+    {
+        game.AddToShufflingSet(group);
+    }
 
     [SerializeField]
     GroupMSList groups;
@@ -380,8 +382,38 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public void BuildForGame()
     {
-        relationManager.BuildGroupDependence();
+        relationManager.BuildGroupDependenceSearchHelper();//這個無法記在Unity裡
         BuildElementDependence();
+        foreach (var g in groups.GetList())
+        {
+            g.CheckIfHasFloorLink();
+            g.hasGroupRelation =relationManager.HasGroupRelation(g);
+        }
+            
+    }
+
+    public void BeforeShuffle()
+    {
+        foreach (var g in groups.GetList()) {
+            g.SetIsFirstShuffle(true);
+            g.BeforeShuffle();
+        }
+        var elementList = GetElementsFromGroups(groups.GetList());
+        foreach (var e in elementList)
+            e.BeforeShuffle();
+    }
+
+    public void PickIndependentGroup()
+    {
+        foreach (var g in groups.GetList())
+        {
+            if (g.hasGroupRelation)
+                continue;
+            if (g.hasFloorLink)
+                continue;
+
+            game.AddToShufflingSet(g);
+        }
     }
 
     void BeforeBuildElementDependence()

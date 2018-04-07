@@ -4,9 +4,9 @@ using UnityEngine;
 
 //前3個是洗牌狀態，最後1個是玩家刪除
 public enum ElementState {
-    ShuffleWaitAllTrigger,//等待所有trigger都滿足才能被配置
-    ShuffleReady,//可以被配置
-    ShuffleSet,//已經被配置
+    ShuffleWaitTriggerMsg,//等待所有trigger都滿足才能被配置
+    ShuffleCanUse,//可以被配置
+    ShuffleUsed,//已經被配置
     Delete//玩家已經消除
 }
 public class Element : MonoBehaviour {
@@ -32,8 +32,9 @@ public class Element : MonoBehaviour {
 
     public void DoReceive()
     {
-        //如果所有前置條件達成
-        //把自己所在的Group加進Game的groupList
+        //所有trigger達成
+        if (msgCount == triggerCount)
+            group.AddToShufflingSet();
     }
 
     public Vector3[] GetRect()
@@ -49,6 +50,7 @@ public class Element : MonoBehaviour {
         };
     }
 
+    int msgCount;
     public int triggerCount;
     public Element[] waiting;
     List<Element> tempList;
@@ -70,6 +72,15 @@ public class Element : MonoBehaviour {
         {
             waiting = tempList.ToArray();
             tempList = null;
-        }   
+        }
+    }
+
+    public void BeforeShuffle()
+    {
+        msgCount = 0;
+        if (triggerCount > 0)
+            state = ElementState.ShuffleWaitTriggerMsg;
+        else
+            state = ElementState.ShuffleCanUse;
     }
 }
