@@ -24,12 +24,6 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
             SceneView.RepaintAll();
         }
 
-        if (GUILayout.Button("BuildDependence"))
-        {
-            groupRelationBuilder.BuildDependence();
-            SceneView.RepaintAll();
-        }
-
         if (GUILayout.Button("ReverseInputArrows"))
         {
             groupRelationBuilder.ReverseInputArrows();
@@ -51,6 +45,12 @@ public class GroupRelationBuilderEditor : UnityEditor.Editor
         if (GUILayout.Button("Down"))
         {
             groupRelationBuilder.SetNowFloorIndex(-1);
+            SceneView.RepaintAll();
+        }
+
+        if (GUILayout.Button("BuildForGame"))
+        {
+            groupRelationBuilder.BuildForGame();
             SceneView.RepaintAll();
         }
     }

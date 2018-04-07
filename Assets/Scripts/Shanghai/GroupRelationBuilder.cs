@@ -206,7 +206,9 @@ public class RelationManager {
 
     //讓使用者翻轉GroupRelation才會用到
     Dictionary<Group, List<GroupRelation>> outputArrows;//key是trigger
+    public Dictionary<Group, List<GroupRelation>> GetOutputArrows() { return outputArrows; }
     Dictionary<Group, List<GroupRelation>> inputArrows;//key是waiting
+    public Dictionary<Group, List<GroupRelation>> GetInputArrows() { return inputArrows; }
 
     void FillDictionary(Group key,GroupRelation value, Dictionary<Group, List<GroupRelation>> arrows)
     {
@@ -223,7 +225,7 @@ public class RelationManager {
         }
     }
 
-    public void ReBuildArrows()
+    public void BuildGroupDependence()
     {
         outputArrows = new Dictionary<Group, List<GroupRelation>>();
         inputArrows = new Dictionary<Group, List<GroupRelation>>();
@@ -239,9 +241,12 @@ public class RelationManager {
     }
 
     public void ReverseInputArrow(Group group) {
-        ReBuildArrows();
+        BuildGroupDependence();
         if (!inputArrows.ContainsKey(group))
+        {
+            Debug.Log("Can not find input arrow");
             return;
+        }
         var links = inputArrows[group];
 
         Debug.Log(links.Count);
@@ -252,9 +257,12 @@ public class RelationManager {
 
     public void ReverseInputArrows(Group group)
     {
-        ReBuildArrows();
+        BuildGroupDependence();
         if (!inputArrows.ContainsKey(group))
+        {
+            Debug.Log("Can not find input arrow");
             return;
+        }
         var links = inputArrows[group];
 
         var findingSet = new HashSet<GroupRelation>();
@@ -330,11 +338,6 @@ public class GroupRelationBuilder : MonoBehaviour {
         relationManager.BeforeBuild(voxelBuilder.GetFloor());
     }
 
-    void AfterBuildLink()
-    {
-        relationManager.ReBuildArrows();
-    }
-
     public void BuildGroups() {
         //(1)建立Group(每1層由左下角開始水平掃描)
         BeforeBuildGroup();
@@ -354,8 +357,6 @@ public class GroupRelationBuilder : MonoBehaviour {
         //(3)上下層作Link(Relation)
         for (var f = voxelBuilder.GetFloor() - 1; f >= 1; --f)
             MakeLinkBetween2Floor(f, f - 1);
-
-        AfterBuildLink();  
     }
 
     public void ReverseInputArrows()
@@ -368,30 +369,36 @@ public class GroupRelationBuilder : MonoBehaviour {
         relationManager.ReverseInputArrow(nowSelectGroup);
     }
 
-    public void BuildDependence()
+    public void BuildElementDependence()
     {
-        BeforeBuildDependence();
-        InjectDependence();
-        AfterBuildDependence();
+        BeforeBuildElementDependence();
+        InjectElementDependence();
+        AfterBuildElementDependence();
 
-        Debug.Log("BuildDependence");
+        Debug.Log("BuildElementDependence");
     }
 
-    void BeforeBuildDependence()
+    public void BuildForGame()
+    {
+        relationManager.BuildGroupDependence();
+        BuildElementDependence();
+    }
+
+    void BeforeBuildElementDependence()
     {
         var elementList = GetElementsFromGroups(groups.GetList());
         foreach (var e in elementList)
             e.BeforeBuildDependence();
     }
 
-    void AfterBuildDependence()
+    void AfterBuildElementDependence()
     {
         var elementList = GetElementsFromGroups(groups.GetList());
         foreach (var e in elementList)
             e.AfterBuildDependence();
     }
 
-    public void InjectDependence()
+    public void InjectElementDependence()
     {
         //(4)為Element寫入triggerCount和waitings
         var downToUpLinks = relationManager.GetDownToUpLinks();
@@ -570,29 +577,4 @@ public class GroupRelationBuilder : MonoBehaviour {
     public Group GetNowSelectGroup() { return nowSelectGroup; }
     public void SetNowSelectGroup(Group group) { nowSelectGroup=group; }
     public void ClearNowSelectGroup() { nowSelectGroup=null; }
-}
-
-//https://answers.unity.com/questions/283191/how-do-i-detect-if-a-scene-is-being-loaded-during.html
-[InitializeOnLoad]
-public static class WhenEditorOpen
-{
-    //開啟Unity後這裡會執行2次
-    //(因為Unity會重新輯譯1次Script檔)
-    static WhenEditorOpen()
-    {
-        Debug.Log("WhenEditorOpen");
-        EditorSceneManager.sceneOpened +=SceneOpenedCallback;
-
-        //上面的callback要在開啟Untiy後，重新開啟1個Scene才會觸發
-        CallGroupRelationBuilder();
-    }
-
-    static void SceneOpenedCallback(UnityEngine.SceneManagement.Scene scene, OpenSceneMode mode)
-    {
-        CallGroupRelationBuilder();
-    }
-
-    static void CallGroupRelationBuilder() {
-        //ReBuildArrows在對某個group執行Reverse再建就行了
-    }
 }

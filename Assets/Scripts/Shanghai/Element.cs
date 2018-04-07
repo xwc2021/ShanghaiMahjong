@@ -11,6 +11,7 @@ public enum ElementState {
 }
 public class Element : MonoBehaviour {
 
+    public Group group;
     public ElementState state;
     public int floor;
     public int y;

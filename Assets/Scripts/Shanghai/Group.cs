@@ -23,7 +23,11 @@ public class Group : MonoBehaviour
 
     [SerializeField]
     Element[] elements;
-    public void AddElements(Element[] element){elements = element;}
+    public void AddElements(Element[] element){
+        elements = element;
+        foreach (var e in element)
+            e.group = this;
+    }
     public Element[] GetElements(){return elements;}
 
     public int xBegin,xEnd;

@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Game : MonoBehaviour {
 
+    [SerializeField]
+    GroupRelationBuilder groupRelationBuilder;
+
     public List<Group> groupList;
 
     List<Group> ShufflingList;
