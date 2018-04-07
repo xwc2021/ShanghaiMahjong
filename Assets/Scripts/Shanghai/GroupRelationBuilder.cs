@@ -308,7 +308,7 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public void AddToShufflingSet(Group group)
     {
-        game.AddToShufflingList(group);
+        game.AddToShufflingSet(group);
     }
 
     [SerializeField]
@@ -417,7 +417,7 @@ public class GroupRelationBuilder : MonoBehaviour {
             if (g.hasFloorLink)
                 continue;
 
-            game.AddToShufflingList(g);
+            game.AddToShufflingSet(g);
         }
     }
 
@@ -534,6 +534,7 @@ public class GroupRelationBuilder : MonoBehaviour {
                 group.Setpos(voxelBegin);
                 group.Set(voxelBegin.floor, voxelBegin.y, voxelBegin.x, voxelEnd.x);
                 group.AddElements(elementList.ToArray());
+                group.SetGroupRelationBuilder(this);
                 groups.Add(group);
             }
         }

@@ -35,6 +35,17 @@ public class Element : MonoBehaviour {
         return state == ElementState.ShuffleCanUse;
     }
 
+    public void SetUse()
+    {
+        state = ElementState.ShuffleUsed;
+        group.AddUserCounter();
+
+        //通知所有waiting
+        if (waiting != null)
+            foreach (var w in waiting)
+                w.ReceiveMsg();
+    }
+
     public void ReceiveMsg()
     {
         ++msgCount;

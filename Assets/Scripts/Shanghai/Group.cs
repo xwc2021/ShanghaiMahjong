@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,12 +15,15 @@ public class Group : MonoBehaviour
         foreach (var e in elements) {
             if (e.triggerCount > 0) {
                 hasFloorLink = true;
-                break;
+                return;
             }
         }
         hasFloorLink = false;
     }
-    public GroupRelationBuilder groupRelationBuilder;
+
+    [SerializeField]
+    GroupRelationBuilder groupRelationBuilder;
+    public void SetGroupRelationBuilder(GroupRelationBuilder builder) { groupRelationBuilder = builder; }
 
     public bool hasFloorLink;
     public bool hasGroupRelation;
@@ -36,8 +38,9 @@ public class Group : MonoBehaviour
 
     bool isFirstSuffle;//是不是一開局的洗牌？
     int inGameLeftIndex, inGameRightIndex;//記錄遊戲進行中的左右2端
-    int shuffleLeftIndex, shuffleRightIndex;
-    int shuffeUseCount;
+    public int shuffleLeftIndex, shuffleRightIndex;
+    public int shuffeUseCount;
+    public void AddUserCounter() { ++shuffeUseCount; }
 
     [SerializeField]
     Element[] elements;
@@ -92,7 +95,7 @@ public class Group : MonoBehaviour
         if (isFirstSuffle)
             return elements.Length;
         else
-            return inGameRightIndex - inGameLeftIndex + 1;
+            return (inGameRightIndex - inGameLeftIndex)/2 + 1;//因為每個之間隔2格
     }
 
     public bool IsSuffleFinish() {
@@ -146,40 +149,131 @@ public class Group : MonoBehaviour
     }
 
     public Element PickElementInGroup() {
-        //還沒實作
-        return null;
+        Element pickElement=null;
+        var groupNotUse = state == GroupState.ShuffleNotUsing;
         if (hasGroupRelation)//如果是有同層相依性的group
         {
-            //ShuffleNotUsing->挑中端點
-            //ShuffleUsing->往左/右挑1個
+            var groupRelation = groupRelationBuilder.GetGroupRelation(this)[0];
+            if (groupNotUse)
+            {
+                //挑端點
+                if (groupRelation.IsRightSideLink())
+                {
+                    pickElement = GetTailElement();
+                    shuffleLeftIndex = elements.Length - 2;
+                }
+                else
+                {
+                    pickElement= GetHeadElement();
+                    shuffleRightIndex = 1;
+                }      
+            }
+            else
+            {
+                //挑端點
+                pickElement = groupRelation.IsRightSideLink() ? elements[shuffleLeftIndex] : elements[shuffleRightIndex];
+                if (groupRelation.IsRightSideLink())
+                    --shuffleLeftIndex;//往左移動
+                else
+                    ++shuffleRightIndex;//往右移動
+            }
         }
         else
         {
-            //如果是只有上下層相依性的group
-            if (hasFloorLink)
+            if (groupNotUse)
             {
-                //ShuffleNotUsing->從ready的elments中随機挑出1個element
-                //ShuffleUsing->nowPickIndex左/右挑1個element(要ready的才行)
+                //從ready的elments中随機挑出1個element
+                var canUseElements = CanUseElements();
+
+                var index = Random.Range(0, canUseElements.Count);
+                pickElement = canUseElements[index];
+                shuffleLeftIndex = index - 1;
+                shuffleRightIndex = index + 1;
             }
-            else//沒有相依性的group
+            else
             {
-                //ShuffleNotUsing->随機挑出1個element
-                //ShuffleUsing->nowPickIndex左/右挑1個element
+                //nowPickIndex左/右挑1個element(要ready的才行)
+                pickElement = GetLeftOrRightElementCanUse();
             }
         }
+        //執行過1次就切換狀態
+        state = GroupState.ShuffleUsing;
+
+        pickElement.SetUse();
+        return pickElement;
+    }
+
+    bool IsValidIndex(int index)
+    {
+        return index >= 0 && index < elements.Length;
     }
 
     bool LeftOrRightElementCanUse()
     {
-        var leftElement = elements[shuffleLeftIndex];
-        var rightElement = elements[shuffleRightIndex];
+        var validLeft =IsValidIndex(shuffleLeftIndex);
+        var validRight = IsValidIndex(shuffleRightIndex);
 
-        if (leftElement != null && rightElement != null)
-            return leftElement.CanUse() || rightElement.CanUse();
-        else if (leftElement != null)
-            return leftElement.CanUse();
+        if (validLeft && validRight)
+            return elements[shuffleLeftIndex].CanUse() || elements[shuffleRightIndex].CanUse();
+        else if (validLeft)
+            return elements[shuffleLeftIndex].CanUse();
+        else if (validRight)
+        {
+            return elements[shuffleRightIndex].CanUse();
+        }
         else
-            return rightElement.CanUse();
+            return false;
+    }
+
+    Element GetLeftOrRightElementCanUse()
+    {
+        Element target = null;
+        var validLeft = IsValidIndex(shuffleLeftIndex);
+        var validRight = IsValidIndex(shuffleRightIndex);
+
+        if (validLeft && validRight)
+        {
+            var leftElement = elements[shuffleLeftIndex];
+            var rightElement = elements[shuffleRightIndex];
+
+            if (leftElement.CanUse() && rightElement.CanUse())
+            {
+                var randomValue = Random.Range(0, 2);
+                if (randomValue == 0)
+                {
+                    target = leftElement;
+                    shuffleLeftIndex = shuffleLeftIndex - 1;
+                }
+                else
+                {
+                    target = rightElement;
+                    shuffleRightIndex = shuffleRightIndex + 1;
+                }
+            }
+            else if (leftElement.CanUse())
+            {
+                target = leftElement;
+                shuffleLeftIndex = shuffleLeftIndex - 1;
+            }
+            else
+            {
+                target = rightElement;
+                shuffleRightIndex = shuffleRightIndex + 1;
+            }
+        }
+        else if (validLeft)
+        {
+            var leftElement = elements[shuffleLeftIndex];
+            target = leftElement;
+            shuffleLeftIndex = shuffleLeftIndex - 1;
+        }
+        else
+        { 
+            var rightElement = elements[shuffleRightIndex];
+            target = rightElement;
+            shuffleRightIndex = shuffleRightIndex + 1;
+        }
+        return target;
     }
 
     bool HasElementCanUse()
@@ -190,5 +284,17 @@ public class Group : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    List<Element> temp=new List<Element>();
+    List<Element> CanUseElements()
+    {
+        temp.Clear();
+        foreach (var e in elements)
+        {
+            if (e.CanUse())
+                temp.Add(e);
+        }
+        return temp;
     }
 }
