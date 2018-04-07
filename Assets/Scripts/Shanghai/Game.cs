@@ -8,10 +8,8 @@ public class Game : MonoBehaviour {
     GroupRelationBuilder groupRelationBuilder;
 
     public List<Group> shufflingList;
-
-    List<Group> playingList;
-
     List<Element[]> pairs;
+    List<Group> playingList;
 
     Group GetRandomGroupInSufflingList()
     {
@@ -23,35 +21,15 @@ public class Game : MonoBehaviour {
     Element PickElementInGroup(Group group)
     {
         //還沒實作
-        return null;
-        if (group.hasGroupRelation)//如果是有同層相依性的group
-        {
-            //ShuffleNotUsing->挑中端點
-            //ShuffleUsing->往左/右挑1個
-        }
-        else
-        {
-            //如果是只有上下層相依性的group
-            if (group.hasFloorLink)
-            {
-                //ShuffleNotUsing->從ready的elments中随機挑出1個element
-                //ShuffleUsing->nowPickIndex左/右挑1個element(要ready的才行)
-            }
-            else//沒有相依性的group
-            {
-                //ShuffleNotUsing->随機挑出1個element
-                //ShuffleUsing->nowPickIndex左/右挑1個element
-            }
-        }
+        var element = group.PickElementInGroup();
 
         //如果group滿了，設定state=ShuffleFinish，並從ShufflingList中移出
         if (group.IsSuffleFinish())
-        {
-            group.state = GroupState.GameFinish;
             RemoveFromShufflingList(group);
-        }
         else if (!group.CanSetElement())
             RemoveFromShufflingList(group);
+
+        return element;
     }
 
     //洗牌

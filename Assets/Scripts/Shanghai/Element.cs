@@ -30,6 +30,11 @@ public class Element : MonoBehaviour {
 
     }
 
+    public bool CanUse()
+    {
+        return state == ElementState.ShuffleCanUse;
+    }
+
     public void ReceiveMsg()
     {
         ++msgCount;
@@ -38,6 +43,8 @@ public class Element : MonoBehaviour {
         {
             if(group.CanSetElement())
                 group.AddToShufflingSet();
+
+            state = ElementState.ShuffleCanUse;
         }
     }
 

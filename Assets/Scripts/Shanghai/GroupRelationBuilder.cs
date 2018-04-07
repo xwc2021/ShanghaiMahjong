@@ -206,6 +206,7 @@ public class RelationManager {
     Dictionary<Group, List<GroupRelation>> outputArrows;//key是trigger
     Dictionary<Group, List<GroupRelation>> inputArrows;//key是waiting
     public bool HasGroupRelation(Group group) { return inputArrows.ContainsKey(group); }
+    public List<GroupRelation> GetGroupRelation(Group group) { return inputArrows[group]; }
 
     void FillDictionary(Group key,GroupRelation value, Dictionary<Group, List<GroupRelation>> arrows)
     {
@@ -380,6 +381,11 @@ public class GroupRelationBuilder : MonoBehaviour {
         Debug.Log("BuildElementDependence");
     }
 
+    public List<GroupRelation> GetGroupRelation(Group group)
+    {
+        return relationManager.GetGroupRelation(group);
+    }
+
     public void BuildForGame()
     {
         relationManager.BuildGroupDependenceSearchHelper();//這個無法記在Unity裡
@@ -389,7 +395,6 @@ public class GroupRelationBuilder : MonoBehaviour {
             g.CheckIfHasFloorLink();
             g.hasGroupRelation =relationManager.HasGroupRelation(g);
         }
-            
     }
 
     public void BeforeShuffle()

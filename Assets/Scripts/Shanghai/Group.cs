@@ -21,10 +21,11 @@ public class Group : MonoBehaviour
         }
         hasFloorLink = false;
     }
+    public GroupRelationBuilder groupRelationBuilder;
+
     public bool hasFloorLink;
     public bool hasGroupRelation;
     public bool isInSuffleList;
-    public GroupRelationBuilder groupRelationBuilder;
 
     public float GetPosX() { return transform.position.x; }
     public Element GetHeadElement() { return elements[0]; }
@@ -36,7 +37,7 @@ public class Group : MonoBehaviour
     bool isFirstSuffle;//是不是一開局的洗牌？
     int inGameLeftIndex, inGameRightIndex;//記錄遊戲進行中的左右2端
     int shuffleLeftIndex, shuffleRightIndex;
-    int shuffeCount;
+    int shuffeUseCount;
 
     [SerializeField]
     Element[] elements;
@@ -94,19 +95,100 @@ public class Group : MonoBehaviour
             return inGameRightIndex - inGameLeftIndex + 1;
     }
 
-    public bool IsSuffleFinish() { return shuffeCount == GetSuffleMaxCount(); }
+    public bool IsSuffleFinish() {
+        var result = shuffeUseCount == GetSuffleMaxCount();
+        if (result)
+            state = GroupState.GameReady;
+        return result;
+    }
 
     public void SetIsFirstShuffle(bool b){ isFirstSuffle = b; }
 
     public void BeforeShuffle()
     {
         isInSuffleList = false;
-        shuffeCount = 0;
+        shuffeUseCount = 0;
         state = GroupState.ShuffleNotUsing;
     }
 
     public bool CanSetElement() {
+        var groupNotUse = state == GroupState.ShuffleNotUsing;
+        if (hasGroupRelation)//如果是有同層相依性的group
+        {
+            var groupRelation = groupRelationBuilder.GetGroupRelation(this)[0];
+            if (groupNotUse)
+            {
+                //檢查端點
+                if (groupRelation.IsRightSideLink())
+                    return GetTailElement().CanUse();
+                else
+                    return GetHeadElement().CanUse();
+            }
+            else {
+                //檢查端點
+                var nextElement = groupRelation.IsRightSideLink()?elements[shuffleLeftIndex]: elements[shuffleRightIndex];
+                return nextElement.CanUse();
+            }
+        }
+        else
+        {
+            if (groupNotUse)
+            {
+                //只要有可以用的元素就行了
+                return HasElementCanUse();
+            }
+            else
+            {
+                //檢查端點左右2端
+                return LeftOrRightElementCanUse();
+            }
+        }
+    }
+
+    public Element PickElementInGroup() {
         //還沒實作
+        return null;
+        if (hasGroupRelation)//如果是有同層相依性的group
+        {
+            //ShuffleNotUsing->挑中端點
+            //ShuffleUsing->往左/右挑1個
+        }
+        else
+        {
+            //如果是只有上下層相依性的group
+            if (hasFloorLink)
+            {
+                //ShuffleNotUsing->從ready的elments中随機挑出1個element
+                //ShuffleUsing->nowPickIndex左/右挑1個element(要ready的才行)
+            }
+            else//沒有相依性的group
+            {
+                //ShuffleNotUsing->随機挑出1個element
+                //ShuffleUsing->nowPickIndex左/右挑1個element
+            }
+        }
+    }
+
+    bool LeftOrRightElementCanUse()
+    {
+        var leftElement = elements[shuffleLeftIndex];
+        var rightElement = elements[shuffleRightIndex];
+
+        if (leftElement != null && rightElement != null)
+            return leftElement.CanUse() || rightElement.CanUse();
+        else if (leftElement != null)
+            return leftElement.CanUse();
+        else
+            return rightElement.CanUse();
+    }
+
+    bool HasElementCanUse()
+    {
+        foreach (var e in elements)
+        {
+            if (e.CanUse())
+                return true;
+        }
         return false;
     }
 }
