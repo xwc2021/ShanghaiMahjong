@@ -307,7 +307,7 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public void AddToShufflingSet(Group group)
     {
-        game.AddToShufflingSet(group);
+        game.AddToShufflingList(group);
     }
 
     [SerializeField]
@@ -412,7 +412,7 @@ public class GroupRelationBuilder : MonoBehaviour {
             if (g.hasFloorLink)
                 continue;
 
-            game.AddToShufflingSet(g);
+            game.AddToShufflingList(g);
         }
     }
 

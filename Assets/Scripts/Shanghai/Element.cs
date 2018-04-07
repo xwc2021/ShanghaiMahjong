@@ -30,11 +30,15 @@ public class Element : MonoBehaviour {
 
     }
 
-    public void DoReceive()
+    public void ReceiveMsg()
     {
+        ++msgCount;
         //所有trigger達成
         if (msgCount == triggerCount)
-            group.AddToShufflingSet();
+        {
+            if(group.CanSetElement())
+                group.AddToShufflingSet();
+        }
     }
 
     public Vector3[] GetRect()

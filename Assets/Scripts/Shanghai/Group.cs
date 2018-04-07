@@ -23,7 +23,7 @@ public class Group : MonoBehaviour
     }
     public bool hasFloorLink;
     public bool hasGroupRelation;
-    public bool isSuffleList;
+    public bool isInSuffleList;
     public GroupRelationBuilder groupRelationBuilder;
 
     public float GetPosX() { return transform.position.x; }
@@ -100,8 +100,13 @@ public class Group : MonoBehaviour
 
     public void BeforeShuffle()
     {
-        isSuffleList = false;
+        isInSuffleList = false;
         shuffeCount = 0;
         state = GroupState.ShuffleNotUsing;
+    }
+
+    public bool CanSetElement() {
+        //還沒實作
+        return false;
     }
 }
