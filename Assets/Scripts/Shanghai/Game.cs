@@ -131,7 +131,7 @@ public class Game : MonoBehaviour {
             Shuffle();
     }
 
-    void Awake()
+    void Start()
     {
         groupRelationBuilder.BuildForGame();
         BuildNewGame();
