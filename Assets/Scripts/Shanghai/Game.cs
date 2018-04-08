@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Game : MonoBehaviour {
 
+    public bool DebugSuffle=false;
+
     [SerializeField]
     GameObject voxelVixibleOdd;
     [SerializeField]
@@ -56,22 +58,23 @@ public class Game : MonoBehaviour {
     //洗牌
     public void Shuffle()
     {
-        //(1)挑出沒有相依性的Group，放入Game的ShufflingList
-        groupRelationBuilder.PickIndependentGroup();
-
         while (shufflingList.Count>0)
         {
-            //(2)從ShufflingList裡隨機挑出2個group
-            var g1 =GetRandomGroupInSufflingList();
-            var e1=PickElementInGroup(g1);
-
-            var g2 = GetRandomGroupInSufflingList();
-            var e2 = PickElementInGroup(g2);
-
-            AddPair(e1, e2);
+            ShuffleOneStep();
         }
 
         Debug.Log("Shuffle Finish");
+    }
+
+    public void ShuffleOneStep() {
+        //(2)從ShufflingList裡隨機挑出2個group
+        var g1 = GetRandomGroupInSufflingList();
+        var e1 = PickElementInGroup(g1);
+
+        var g2 = GetRandomGroupInSufflingList();
+        var e2 = PickElementInGroup(g2);
+
+        AddPair(e1, e2);
     }
 
     public void AddToShufflingSet(Group group)
@@ -98,13 +101,18 @@ public class Game : MonoBehaviour {
         shufflingSet = new HashSet<Group>();
         shufflingList = new List<Group>();
         groupRelationBuilder.BeforeShuffle();
+
+        //(1)挑出沒有相依性的Group，放入Game的ShufflingList
+        groupRelationBuilder.PickIndependentGroup();
     }
 
     //開始新的一局
     void BuildNewGame()
     { 
         BeforeShuffle();
-        Shuffle();
+
+        if(!DebugSuffle)
+            Shuffle();
     }
 
     void Awake()

@@ -330,7 +330,12 @@ public class GroupRelationBuilder : MonoBehaviour {
         return groups.GetSegment(floor);
     }
 
+    public int totalGroupCount;
+    public int totalElementCount;
+
     void BeforeBuildGroup() {
+        totalGroupCount = 0;
+        totalElementCount = 0;
         Tool.Clear(groupsContainer);
         Tool.Clear(elementsContainer);
         groups = new GroupMSList(voxelBuilder.GetFloor());
@@ -543,11 +548,13 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     Group CreateGroup()
     {
+        ++totalGroupCount;
         return Instantiate<Group>(groupPrefab,groupsContainer);
     }
 
     Element CreateElement()
     {
+        ++totalElementCount;
         return Instantiate<Element>(elementPrefab, elementsContainer);
     }
 

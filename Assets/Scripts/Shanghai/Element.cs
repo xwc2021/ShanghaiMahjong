@@ -73,7 +73,7 @@ public class Element : MonoBehaviour {
         };
     }
 
-    int msgCount;
+    public int msgCount;
     public int triggerCount;
     public Element[] waiting;
     List<Element> tempList;
