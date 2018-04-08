@@ -27,7 +27,6 @@ public class Game : MonoBehaviour {
     //(3)如何從Group裡挑中Element
     Element PickElementInGroup(Group group)
     {
-        //還沒實作
         var element = group.PickElementInGroup();
 
         //如果group滿了，設定state=ShuffleFinish，並從ShufflingList中移出
@@ -71,6 +70,8 @@ public class Game : MonoBehaviour {
 
             AddPair(e1, e2);
         }
+
+        Debug.Log("Shuffle Finish");
     }
 
     public void AddToShufflingSet(Group group)

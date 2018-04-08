@@ -16,6 +16,7 @@ public class Element : MonoBehaviour {
     public int floor;
     public int y;
     public int x;
+    public int indexInGroup;
 
     public void Set(Voxel voxel)
     {
@@ -38,7 +39,7 @@ public class Element : MonoBehaviour {
     public void SetUse()
     {
         state = ElementState.ShuffleUsed;
-        group.AddUserCounter();
+        group.AddUseCounter();
 
         //通知所有waiting
         if (waiting != null)

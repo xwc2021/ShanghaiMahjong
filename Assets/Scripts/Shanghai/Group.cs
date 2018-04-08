@@ -40,14 +40,19 @@ public class Group : MonoBehaviour
     int inGameLeftIndex, inGameRightIndex;//記錄遊戲進行中的左右2端
     public int shuffleLeftIndex, shuffleRightIndex;
     public int shuffeUseCount;
-    public void AddUserCounter() { ++shuffeUseCount; }
+    public int DebugStartIndex;
+    public void AddUseCounter() { ++shuffeUseCount; }
 
     [SerializeField]
     Element[] elements;
     public void AddElements(Element[] element){
         elements = element;
-        foreach (var e in element)
+        for (var i = 0; i < elements.Length; ++i)
+        {
+            var e = element[i];
             e.group = this;
+            e.indexInGroup = i;
+        }   
     }
 
     public void AddToShufflingSet()
@@ -138,7 +143,7 @@ public class Group : MonoBehaviour
             if (groupNotUse)
             {
                 //只要有可以用的元素就行了
-                return HasElementCanUse();
+                return HasAnyElementCanUse();
             }
             else
             {
@@ -183,12 +188,14 @@ public class Group : MonoBehaviour
             if (groupNotUse)
             {
                 //從ready的elments中随機挑出1個element
-                var canUseElements = CanUseElements();
+                var canUseElements = GetCanUseElements();
 
                 var index = Random.Range(0, canUseElements.Count);
                 pickElement = canUseElements[index];
-                shuffleLeftIndex = index - 1;
-                shuffleRightIndex = index + 1;
+                var indexInGroup = pickElement.indexInGroup;//這才是正確的索引
+                shuffleLeftIndex = indexInGroup - 1;
+                shuffleRightIndex = indexInGroup + 1;
+                DebugStartIndex = indexInGroup;
             }
             else
             {
@@ -218,9 +225,7 @@ public class Group : MonoBehaviour
         else if (validLeft)
             return elements[shuffleLeftIndex].CanUse();
         else if (validRight)
-        {
             return elements[shuffleRightIndex].CanUse();
-        }
         else
             return false;
     }
@@ -267,16 +272,17 @@ public class Group : MonoBehaviour
             target = leftElement;
             shuffleLeftIndex = shuffleLeftIndex - 1;
         }
-        else
-        { 
+        else if (validRight)
+        {
             var rightElement = elements[shuffleRightIndex];
             target = rightElement;
             shuffleRightIndex = shuffleRightIndex + 1;
         }
+
         return target;
     }
 
-    bool HasElementCanUse()
+    bool HasAnyElementCanUse()
     {
         foreach (var e in elements)
         {
@@ -287,7 +293,7 @@ public class Group : MonoBehaviour
     }
 
     List<Element> temp=new List<Element>();
-    List<Element> CanUseElements()
+    List<Element> GetCanUseElements()
     {
         temp.Clear();
         foreach (var e in elements)
