@@ -108,7 +108,13 @@ public class Game : MonoBehaviour {
 
     //開始新的一局
     void BuildNewGame()
-    { 
+    {
+        if (groupRelationBuilder.totalElementCount % 2 != 0)
+        {
+            Debug.Log("洗牌機器人：不是偶數喔!不幫你洗");
+            return;
+        }
+
         BeforeShuffle();
         if(!DebugSuffle)
             Shuffle();
