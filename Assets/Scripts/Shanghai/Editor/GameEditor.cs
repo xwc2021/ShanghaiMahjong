@@ -17,6 +17,12 @@ public class GameEditor : UnityEditor.Editor
 
         if (GUILayout.Button("ShuffleOneStep"))
         {
+            if (game.shufflingList.Count == 0)
+            {
+                Debug.Log("洗好了");
+                return;
+            }
+
             game.ShuffleOneStep();
             SceneView.RepaintAll();
         }

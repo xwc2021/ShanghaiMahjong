@@ -78,6 +78,7 @@ public class Game : MonoBehaviour {
     }
 
     public void ShuffleOneStep() {
+
         //(2)從ShufflingList裡隨機挑出2個group
         var g1 = GetRandomGroupInSufflingList();
         var e1 = PickElementInGroup(g1);
