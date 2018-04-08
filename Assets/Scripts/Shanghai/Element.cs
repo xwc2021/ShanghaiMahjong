@@ -53,10 +53,11 @@ public class Element : MonoBehaviour {
         //所有trigger達成
         if (msgCount == triggerCount)
         {
-            if(group.CanSetElement())
-                group.AddToShufflingSet();
-
+            //先切換狀態再執行group.CanSetElement()才會正確
             state = ElementState.ShuffleCanUse;
+
+            if (group.CanSetElement())
+                group.AddToShufflingSet();
         }
     }
 

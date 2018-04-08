@@ -110,7 +110,6 @@ public class Game : MonoBehaviour {
     void BuildNewGame()
     { 
         BeforeShuffle();
-
         if(!DebugSuffle)
             Shuffle();
     }
