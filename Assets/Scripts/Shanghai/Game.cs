@@ -40,14 +40,25 @@ public class Game : MonoBehaviour {
         return element;
     }
 
+    [SerializeField]
+    PrefabHolder prefabHolder;
+
+    GameObject GetMahjong() { return prefabHolder.GetRandomPrefab(); }
+    GameObject GetVoxelVixible() {
+        var isEven = pairsOne.Count % 2 == 0;
+        return isEven ? voxelVisibleEven : voxelVixibleOdd;
+    }
+
     void AddPair(Element e1,Element e2)
     {
         pairsOne.Add(e1);
         pairsTwo.Add(e2);
 
-        var isEven =pairsOne.Count % 2 == 0;
-        var v1 =Instantiate<GameObject>(isEven ? voxelVisibleEven : voxelVixibleOdd,this.transform);
-        var v2= Instantiate<GameObject>(isEven ? voxelVisibleEven : voxelVixibleOdd, this.transform);
+        var obj = GetMahjong();
+
+        var v1 = Instantiate<GameObject>(obj, this.transform);
+        var v2 = Instantiate<GameObject>(obj, this.transform);
+
         v1.transform.localPosition = e1.transform.localPosition;
         v2.transform.localPosition = e2.transform.localPosition;
 
