@@ -205,7 +205,8 @@ public class RelationManager {
 
     Dictionary<Group, List<GroupRelation>> outputArrows;//key是trigger
     Dictionary<Group, List<GroupRelation>> inputArrows;//key是waiting
-    public bool HasGroupRelation(Group group) { return inputArrows.ContainsKey(group); }
+    public bool HasInputArrow(Group group) { return inputArrows.ContainsKey(group); }
+    public bool HasOutputArrow(Group group) { return outputArrows.ContainsKey(group); }
     public List<GroupRelation> GetGroupRelation(Group group) { return inputArrows[group]; }
 
     void FillDictionary(Group key,GroupRelation value, Dictionary<Group, List<GroupRelation>> arrows)
@@ -398,7 +399,8 @@ public class GroupRelationBuilder : MonoBehaviour {
         foreach (var g in groups.GetList())
         {
             g.CheckIfHasFloorLink();
-            g.hasGroupRelation =relationManager.HasGroupRelation(g);
+            g.hasInputArrow =relationManager.HasInputArrow(g);
+            g.hasOutputArrow = relationManager.HasOutputArrow(g);
         }
     }
 
@@ -417,7 +419,7 @@ public class GroupRelationBuilder : MonoBehaviour {
     {
         foreach (var g in groups.GetList())
         {
-            if (g.hasGroupRelation)
+            if (g.hasInputArrow)
                 continue;
             if (g.hasFloorLink)
                 continue;

@@ -26,6 +26,20 @@ public class Game : MonoBehaviour {
         return shufflingList[index];
     }
 
+    Group GetRandomGroupInSufflingListHasOutputArrowFirst()
+    {
+        var outputArrowList = new List<Group>();
+        foreach (var g in shufflingList)
+            if (g.hasOutputArrow)
+                outputArrowList.Add(g);
+
+        if (outputArrowList.Count == 0)
+            return GetRandomGroupInSufflingList();
+
+        int index = Random.Range(0, outputArrowList.Count);
+        return outputArrowList[index];
+    }
+
     //(3)如何從Group裡挑中Element
     Element PickElementInGroup(Group group)
     {
@@ -80,11 +94,19 @@ public class Game : MonoBehaviour {
     public void ShuffleOneStep() {
 
         //(2)從ShufflingList裡隨機挑出2個group
-        var g1 = GetRandomGroupInSufflingList();
+        //為了避免這種case
+        //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipM49GnYdlrx7vOzpi68JuSV3NKFSVh6OwjfELcq?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
+        var g1 = GetRandomGroupInSufflingListHasOutputArrowFirst();
         var e1 = PickElementInGroup(g1);
 
         var g2 = GetRandomGroupInSufflingList();
         var e2 = PickElementInGroup(g2);
+
+        //為了免運這種case
+        //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipMV8fgMmA9pVUzs1-GMLiPq8DooJLJv9IUhyUxY?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
+        //所以延後到這時才SendMsg
+        e1.SendMsg();
+        e2.SendMsg();
 
         AddPair(e1, e2);
     }

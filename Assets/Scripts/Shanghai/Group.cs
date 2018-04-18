@@ -26,15 +26,16 @@ public class Group : MonoBehaviour
     public void SetGroupRelationBuilder(GroupRelationBuilder builder) { groupRelationBuilder = builder; }
 
     public bool hasFloorLink;
-    public bool hasGroupRelation;
+    public bool hasInputArrow;
     public bool isInSuffleList;
+
+    public bool hasOutputArrow;
 
     public float GetPosX() { return transform.position.x; }
     public Element GetHeadElement() { return elements[0]; }
     public Element GetTailElement() { return elements[elements.Length-1]; }
 
     public GroupState state;
-    public bool hasDependence = false;
 
     bool isFirstSuffle;//是不是一開局的洗牌？
     int inGameLeftIndex, inGameRightIndex;//記錄遊戲進行中的左右2端
@@ -121,7 +122,7 @@ public class Group : MonoBehaviour
 
     public bool CanSetElement() {
         var groupNotUse = state == GroupState.ShuffleNotUsing;
-        if (hasGroupRelation)//如果是有同層相依性的group
+        if (hasInputArrow)//如果是有同層相依性的group
         {
             var groupRelation = groupRelationBuilder.GetGroupRelation(this)[0];
             if (groupNotUse)
@@ -156,7 +157,7 @@ public class Group : MonoBehaviour
     public Element PickElementInGroup() {
         Element pickElement=null;
         var groupNotUse = state == GroupState.ShuffleNotUsing;
-        if (hasGroupRelation)//如果是有同層相依性的group
+        if (hasInputArrow)//如果是有同層相依性的group
         {
             var groupRelation = groupRelationBuilder.GetGroupRelation(this)[0];
             if (groupNotUse)

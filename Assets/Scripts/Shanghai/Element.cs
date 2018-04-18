@@ -40,7 +40,10 @@ public class Element : MonoBehaviour {
     {
         state = ElementState.ShuffleUsed;
         group.AddUseCounter();
+    }
 
+    public void SendMsg()
+    {
         //通知所有waiting
         if (waiting != null)
             foreach (var w in waiting)
