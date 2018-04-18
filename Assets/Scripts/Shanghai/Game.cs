@@ -63,14 +63,16 @@ public class Game : MonoBehaviour {
     Element PickElementInGroup(Group group)
     {
         var element = group.PickElementInGroup();
+        return element;
+    }
 
+    void AfterPickElement(Group group)
+    {
         //如果group滿了，設定state=ShuffleFinish，並從ShufflingList中移出
         if (group.IsSuffleFinish())
             RemoveFromShufflingList(group);
         else if (!group.CanSetElement())
             RemoveFromShufflingList(group);
-
-        return element;
     }
 
     [SerializeField]
@@ -99,15 +101,43 @@ public class Game : MonoBehaviour {
         v2.name = e2.name;
     }
 
+    bool doShuffling;
     //洗牌
-    public void Shuffle()
+    public bool Shuffle()
     {
-        while (shufflingList.Count>0)
+        doShuffling = true;
+        while (doShuffling && shufflingList.Count>0)
         {
             ShuffleOneStep();
         }
 
-        Debug.Log("Shuffle Finish");
+        return shufflingList.Count == 0;
+    }
+
+    Element PickE2(Element e1)
+    {
+        int i = 0;
+        while (true)
+        {
+            ++i;
+            if (i > 1000)
+            {
+                Debug.Log("出不去");
+                return null;
+            }
+                
+            var g2 = GetRandomGroupInSufflingList();
+            g2.MemoryState();
+            var e2 = PickElementInGroup(g2);
+            if (e2.group == e1.group && g2.shuffeUseCount>=3 && e2.IsNeighbor(e1))
+            {
+                //Debug.Log("RollBack "+ g2.name);
+                g2.RollBack();
+                continue;
+            }
+            AfterPickElement(g2);
+            return e2;
+        }
     }
 
     public void ShuffleOneStep() {
@@ -117,10 +147,16 @@ public class Game : MonoBehaviour {
         //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipM49GnYdlrx7vOzpi68JuSV3NKFSVh6OwjfELcq?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
         var g1 = GetRandomGroupInSufflingListHasOutputArrowFirst();
         var e1 = PickElementInGroup(g1);
+        AfterPickElement(g1);
 
-        var g2 = GetRandomGroupInSufflingList();
-        var e2 = PickElementInGroup(g2);
-
+        var e2 = PickE2(e1);
+        if (e2 == null)
+        {
+            Debug.Log("洗牌失敗");
+            doShuffling = false;
+            return;
+        }
+            
         //為了避免這種case
         //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipMV8fgMmA9pVUzs1-GMLiPq8DooJLJv9IUhyUxY?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
         //所以延後到這時才通知等待中的牌
@@ -149,6 +185,7 @@ public class Game : MonoBehaviour {
 
     void BeforeShuffle()
     {
+        Tool.Clear(this.transform);
         pairsOne = new List<Element>();
         pairsTwo = new List<Element>();
         shufflingSet = new HashSet<Group>();
@@ -168,9 +205,22 @@ public class Game : MonoBehaviour {
             return;
         }
 
-        BeforeShuffle();
-        if(!DebugSuffle)
-            Shuffle();
+        
+        if (!DebugSuffle)
+        {
+            while (true)
+            {
+                Debug.Log("開始洗牌");
+                BeforeShuffle();
+                var ok =Shuffle();
+                if (ok)
+                {
+                    Debug.Log("Shuffle Finish");
+                    break;
+                }
+            }
+        }
+            
     }
 
     void Start()

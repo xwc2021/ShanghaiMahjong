@@ -42,6 +42,15 @@ public class Element : MonoBehaviour {
         group.AddUseCounter();
     }
 
+    public void SetNotUse()
+    {
+        if (triggerCount > 0)
+            state = ElementState.ShuffleWaitTriggerMsg;
+        else
+            state = ElementState.ShuffleCanUse;
+        group.MinusUseCounter();
+    }
+
     public void SendMsg()
     {
         //通知所有waiting
@@ -109,5 +118,16 @@ public class Element : MonoBehaviour {
             state = ElementState.ShuffleWaitTriggerMsg;
         else
             state = ElementState.ShuffleCanUse;
+    }
+
+    //測試同1個group中的element是否相鄰
+    public bool IsNeighbor(Element e)
+    {
+        if (this.x - 2 == e.x)
+            return true;
+        else if (this.x + 2 == e.x)
+            return true;
+        else
+            return false;
     }
 }

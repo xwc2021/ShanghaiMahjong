@@ -43,6 +43,7 @@ public class Group : MonoBehaviour
     public int shuffeUseCount;
     public int DebugStartIndex;
     public void AddUseCounter() { ++shuffeUseCount; }
+    public void MinusUseCounter() { --shuffeUseCount; }
 
     [SerializeField]
     Element[] elements;
@@ -161,8 +162,9 @@ public class Group : MonoBehaviour
         }
     }
 
+    
     public Element PickElementInGroup() {
-        Element pickElement=null;
+        pickElement=null;
         var groupNotUse = state == GroupState.ShuffleNotUsing;
         if (hasInputArrow)//如果是有同層相依性的group
         {
@@ -216,6 +218,27 @@ public class Group : MonoBehaviour
 
         pickElement.SetUse();
         return pickElement;
+    }
+
+    Element pickElement;
+    GroupState memoryState;
+    int memoryShuffleLeftIndex;
+    int memoryShuffleRightIndex;
+
+    public void MemoryState()
+    {
+        memoryState = state;
+        memoryShuffleLeftIndex=shuffleLeftIndex;
+        memoryShuffleRightIndex=shuffleRightIndex;
+    }
+
+    public void RollBack()
+    {
+        state=memoryState;
+        shuffleLeftIndex=memoryShuffleLeftIndex;
+        shuffleRightIndex=memoryShuffleRightIndex;
+
+        pickElement.SetNotUse();
     }
 
     bool IsValidIndex(int index)
