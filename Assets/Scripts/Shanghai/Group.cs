@@ -113,6 +113,13 @@ public class Group : MonoBehaviour
 
     public void SetIsFirstShuffle(bool b){ isFirstSuffle = b; }
 
+    //如果沒有inputArrow depth就是0
+    //有inputArrow的話
+    //G1<-G2<-G3
+    //像G2的Depth就是1
+    //G1的Dpeth就是2
+    public int depth;
+
     public void BeforeShuffle()
     {
         isInSuffleList = false;
@@ -124,7 +131,7 @@ public class Group : MonoBehaviour
         var groupNotUse = state == GroupState.ShuffleNotUsing;
         if (hasInputArrow)//如果是有同層相依性的group
         {
-            var groupRelation = groupRelationBuilder.GetGroupRelation(this)[0];
+            var groupRelation = groupRelationBuilder.GetGroupInputArrows(this)[0];
             if (groupNotUse)
             {
                 //檢查端點
@@ -159,7 +166,7 @@ public class Group : MonoBehaviour
         var groupNotUse = state == GroupState.ShuffleNotUsing;
         if (hasInputArrow)//如果是有同層相依性的group
         {
-            var groupRelation = groupRelationBuilder.GetGroupRelation(this)[0];
+            var groupRelation = groupRelationBuilder.GetGroupInputArrows(this)[0];
             if (groupNotUse)
             {
                 //挑端點

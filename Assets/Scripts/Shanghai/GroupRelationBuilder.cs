@@ -207,7 +207,44 @@ public class RelationManager {
     Dictionary<Group, List<GroupRelation>> inputArrows;//key是waiting
     public bool HasInputArrow(Group group) { return inputArrows.ContainsKey(group); }
     public bool HasOutputArrow(Group group) { return outputArrows.ContainsKey(group); }
-    public List<GroupRelation> GetGroupRelation(Group group) { return inputArrows[group]; }
+
+    int depth;
+    public void InjectGroupDepth() {
+        depth = 0;
+        //取出所有的outputArrows
+
+        var enumerator = outputArrows.GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            var groupRelations =enumerator.Current.Value;
+            for (var i = 0; i < groupRelations.Count; ++i)
+            {
+                var g = groupRelations[i].GetWaiting();
+                InjectGroupDepth(g);
+            }
+        }
+    }
+
+    void InjectGroupDepth(Group g)
+    {
+        ++depth;
+        if (depth > g.depth)
+        {
+            g.depth = depth;
+            //Debug.Log(depth);
+            if (outputArrows.ContainsKey(g)) {
+                var links =outputArrows[g];
+                for (var i = 0; i < links.Count; ++i)
+                {
+                    var waitGroup =links[i].GetWaiting();
+                    InjectGroupDepth(waitGroup);
+                }
+            }
+        }
+        --depth;
+    }
+
+    public List<GroupRelation> GetGroupInputArrows(Group group) { return inputArrows[group]; }
 
     void FillDictionary(Group key,GroupRelation value, Dictionary<Group, List<GroupRelation>> arrows)
     {
@@ -387,9 +424,9 @@ public class GroupRelationBuilder : MonoBehaviour {
         Debug.Log("BuildElementDependence");
     }
 
-    public List<GroupRelation> GetGroupRelation(Group group)
+    public List<GroupRelation> GetGroupInputArrows(Group group)
     {
-        return relationManager.GetGroupRelation(group);
+        return relationManager.GetGroupInputArrows(group);
     }
 
     public void BuildForGame()
@@ -402,6 +439,14 @@ public class GroupRelationBuilder : MonoBehaviour {
             g.hasInputArrow =relationManager.HasInputArrow(g);
             g.hasOutputArrow = relationManager.HasOutputArrow(g);
         }
+        InjectGroupDepth();
+    }
+
+    void InjectGroupDepth()
+    {
+        foreach (var g in groups.GetList())
+            g.depth = 0;
+        relationManager.InjectGroupDepth();
     }
 
     public void BeforeShuffle()
