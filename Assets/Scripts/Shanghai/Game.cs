@@ -36,8 +36,27 @@ public class Game : MonoBehaviour {
         if (outputArrowList.Count == 0)
             return GetRandomGroupInSufflingList();
 
-        int index = Random.Range(0, outputArrowList.Count);
-        return outputArrowList[index];
+        //由小到大
+        outputArrowList.Sort((a, b) => {
+            if (a.depth < b.depth)
+                return -1;
+            else
+                return 1;
+        });
+
+        var Count = 1;
+        var depth = outputArrowList[0].depth;
+        for (var i = 1; i < outputArrowList.Count; ++i)
+        {
+            if (outputArrowList[i].depth == depth)
+                ++Count;
+            else
+                break;
+        }
+
+        int index = Random.Range(0, Count);
+        var nowGroup = outputArrowList[index];
+        return nowGroup;
     }
 
     //(3)如何從Group裡挑中Element
@@ -102,9 +121,9 @@ public class Game : MonoBehaviour {
         var g2 = GetRandomGroupInSufflingList();
         var e2 = PickElementInGroup(g2);
 
-        //為了免運這種case
+        //為了避免這種case
         //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipMV8fgMmA9pVUzs1-GMLiPq8DooJLJv9IUhyUxY?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
-        //所以延後到這時才SendMsg
+        //所以延後到這時才通知等待中的牌
         e1.SendMsg();
         e2.SendMsg();
 
