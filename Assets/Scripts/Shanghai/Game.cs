@@ -205,20 +205,24 @@ public class Game : MonoBehaviour {
             return;
         }
 
-        
+
         if (!DebugSuffle)
         {
             while (true)
             {
                 Debug.Log("開始洗牌");
                 BeforeShuffle();
-                var ok =Shuffle();
+                var ok = Shuffle();
                 if (ok)
                 {
                     Debug.Log("Shuffle Finish");
                     break;
                 }
             }
+        }
+        else
+        {
+            BeforeShuffle();
         }
             
     }
