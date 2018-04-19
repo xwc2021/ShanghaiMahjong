@@ -42,12 +42,10 @@ public class Element : MonoBehaviour {
         group.AddUseCounter();
     }
 
+    //只有rollback時會呼叫，會呼叫rollback代表之前一定是ShuffleCanUse
     public void SetNotUse()
     {
-        if (triggerCount > 0)
-            state = ElementState.ShuffleWaitTriggerMsg;
-        else
-            state = ElementState.ShuffleCanUse;
+        state = ElementState.ShuffleCanUse;
         group.MinusUseCounter();
     }
 
