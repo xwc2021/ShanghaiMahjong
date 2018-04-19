@@ -149,6 +149,15 @@ public class Game : MonoBehaviour {
         var e1 = PickElementInGroup(g1);
         AfterPickElement(g1);
 
+        //有可能出現g2不存在
+        //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipOL8-TRsdE-XKHVYC7brqQYyzclaqxPc6NZ5XIQ?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
+        if (shufflingList.Count == 0)
+        {
+            Debug.Log("洗牌失敗");
+            doShuffling = false;
+            return;
+        }
+
         var e2 = PickE2(e1);
         if (e2 == null)
         {
