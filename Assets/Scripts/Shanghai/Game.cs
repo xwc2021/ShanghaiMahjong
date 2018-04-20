@@ -106,6 +106,8 @@ public class Game : MonoBehaviour {
     {
         var list = shufflingList;
 
+        //低樓層優先
+        list = OrderByFloorFilter(list);
 
         //有OutputArrow優先
         list = OutputArrowOrderByDepthFilter(list);
