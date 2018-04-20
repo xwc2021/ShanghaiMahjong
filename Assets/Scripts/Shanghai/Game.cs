@@ -20,25 +20,28 @@ public class Game : MonoBehaviour {
     public List<Element> pairsTwo;
     List<Group> playingList;
 
-    Group GetRandomGroupInSufflingList()
+
+    Group GetRandomGroupInSufflingList(){ return GetRandomGroupInList(shufflingList); }
+
+    Group GetRandomGroupInList(List<Group> list)
     {
-        int index = Random.Range(0, shufflingList.Count);
-        return shufflingList[index];
+        int index = Random.Range(0, list.Count);
+        return list[index];
     }
 
     //取得shufflingList裡有outputArrow的group，再用深度排序後，傳回最最前段班
-    List<Group> OutputArrowFirst()
+    List<Group> OutputArrowOrderByDepthFilter(List<Group> source)
     {
-        var outputArrowList = new List<Group>();
-        foreach (var g in shufflingList)
+        var list = new List<Group>();
+        foreach (var g in source)
             if (g.hasOutputArrow)
-                outputArrowList.Add(g);
+                list.Add(g);
 
-        if (outputArrowList.Count == 0)
-            return null;
+        if (list.Count == 0)
+            return source;
 
         //深度由小到大
-        outputArrowList.Sort((a, b) => {
+        list.Sort((a, b) => {
             if (a.depth < b.depth)
                 return -1;
             else
@@ -46,28 +49,71 @@ public class Game : MonoBehaviour {
         });
 
         //取出最前面的那一段
+        return GetFirstSegment(list, list[0].depth, GetGroupDepth);
+    }
+
+    delegate int GetGroupField(Group group);
+    int GetGroupFloor(Group group) { return group.floor; }
+    int GetGroupDepth(Group group) { return group.depth; }
+    int GetGroupShuffeNotUseCount(Group group) { return group.GetShuffeNotUseCount(); }
+
+    List<Group> GetFirstSegment(List<Group> list,int value, GetGroupField funptr)
+    {
         var Count = 1;
-        var depth = outputArrowList[0].depth;
-        for (var i = 1; i < outputArrowList.Count; ++i)
+        for (var i = 1; i < list.Count; ++i)
         {
-            if (outputArrowList[i].depth == depth)
+            if (funptr(list[i]) == value)
                 ++Count;
             else
                 break;
         }
-        return outputArrowList.GetRange(0,Count);
+        return list.GetRange(0, Count);
+    }
+
+    List<Group> OrderByFloorFilter(List<Group> source)
+    {
+        var list = new List<Group>(source.ToArray());
+        //由小排到大
+        list.Sort((a, b) =>
+        {
+            if (a.floor < b.floor)
+                return -1;
+            else
+                return 1;
+        });
+
+        //取出最前面的那一段
+        return GetFirstSegment(list, list[0].floor, GetGroupFloor);
+    }
+
+    List<Group> OrderByNotUseCountFilter(List<Group> source)
+    {
+        var list = new List<Group>(source.ToArray());
+        //由大排到小
+        list.Sort((a, b) =>
+        {
+            if (a.GetShuffeNotUseCount() < b.GetShuffeNotUseCount())
+                return 1;
+            else
+                return -1;
+        });
+
+        //取出最前面的那一段
+        return GetFirstSegment(list, list[0].GetShuffeNotUseCount(), GetGroupShuffeNotUseCount);
     }
 
     Group GetRandomGroupInSufflingListWithConstraint()
     {
-        var list = OutputArrowFirst();
-        if(list==null)
-            return GetRandomGroupInSufflingList();
+        var list = shufflingList;
 
 
-        int index = Random.Range(0, list.Count);
-        var nowGroup = list[index];
-        return nowGroup;
+        //有OutputArrow優先
+        list = OutputArrowOrderByDepthFilter(list);
+
+        //空位置多的優先
+        list = OrderByNotUseCountFilter(list);
+
+        return GetRandomGroupInList(list);
     }
 
     //(3)如何從Group裡挑中Element
@@ -122,7 +168,7 @@ public class Game : MonoBehaviour {
             ShuffleOneStep();
         }
 
-        return shufflingList.Count == 0;
+        return shufflingList.Count == 0 && doShuffling;
     }
 
     Element PickE2(Element e1)
@@ -226,7 +272,6 @@ public class Game : MonoBehaviour {
             Debug.Log("洗牌機器人：不是偶數喔!不幫你洗");
             return;
         }
-
 
         if (!DebugSuffle)
         {

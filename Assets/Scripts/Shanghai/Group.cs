@@ -33,7 +33,7 @@ public class Group : MonoBehaviour
 
     public float GetPosX() { return transform.position.x; }
     public Element GetHeadElement() { return elements[0]; }
-    public Element GetTailElement() { return elements[elements.Length-1]; }
+    public Element GetTailElement() { return elements[elements.Length - 1]; }
 
     public GroupState state;
 
@@ -44,6 +44,8 @@ public class Group : MonoBehaviour
     public int DebugStartIndex;
     public void AddUseCounter() { ++shuffeUseCount; }
     public void MinusUseCounter() { --shuffeUseCount; }
+
+    public int GetShuffeNotUseCount(){return GetSuffleMaxCount()-shuffeUseCount;}
 
     [SerializeField]
     Element[] elements;
