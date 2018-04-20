@@ -39,7 +39,7 @@ public class Game : MonoBehaviour {
 
         if (list.Count == 0)
             return source;
-
+        //DebugList(list, "depth排序前",GetGroupDepth);
         //深度由小到大
         list.Sort((a, b) => {
             if (a.depth < b.depth)
@@ -47,7 +47,7 @@ public class Game : MonoBehaviour {
             else
                 return 1;
         });
-
+        //DebugList(list, "depth排序後", GetGroupDepth);
         //取出最前面的那一段
         return GetFirstSegment(list, list[0].depth, GetGroupDepth);
     }
@@ -73,6 +73,7 @@ public class Game : MonoBehaviour {
     List<Group> OrderByFloorFilter(List<Group> source)
     {
         var list = new List<Group>(source.ToArray());
+        //DebugList(list, "floor排序前",GetGroupFloor);
         //由小排到大
         list.Sort((a, b) =>
         {
@@ -81,23 +82,34 @@ public class Game : MonoBehaviour {
             else
                 return 1;
         });
+        //DebugList(list, "floor排序後", GetGroupFloor);
 
         //取出最前面的那一段
         return GetFirstSegment(list, list[0].floor, GetGroupFloor);
     }
 
+    void DebugList(List<Group> list,string msg, GetGroupField getGroupField )
+    {
+        Debug.Log(msg);
+        for (var i = 0; i < list.Count; ++i)
+        {
+            Debug.Log(getGroupField(list[i]));
+        }
+    }
+
     List<Group> OrderByNotUseCountFilter(List<Group> source)
     {
         var list = new List<Group>(source.ToArray());
+        //DebugList(list, "GetShuffeNotUseCount排序前",GetGroupShuffeNotUseCount);
         //由大排到小
         list.Sort((a, b) =>
         {
-            if (a.GetShuffeNotUseCount() < b.GetShuffeNotUseCount())
-                return 1;
-            else
+            if (a.GetShuffeNotUseCount() > b.GetShuffeNotUseCount())
                 return -1;
+            else
+                return 1;
         });
-
+        //DebugList(list, "排序後", GetGroupShuffeNotUseCount);
         //取出最前面的那一段
         return GetFirstSegment(list, list[0].GetShuffeNotUseCount(), GetGroupShuffeNotUseCount);
     }
@@ -186,8 +198,9 @@ public class Game : MonoBehaviour {
                 Debug.Log("出不去");
                 return null;
             }
-                
+
             var g2 = GetRandomGroupInSufflingList();
+            //var g2 = GetRandomGroupInSufflingListWithConstraint();
             g2.MemoryState();
             var e2 = PickElementInGroup(g2);
             if (e2.group == e1.group && g2.shuffeUseCount>=3 && e2.IsNeighbor(e1))
