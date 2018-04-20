@@ -5,6 +5,7 @@ using UnityEngine;
 public class Game : MonoBehaviour {
 
     public bool DebugSuffle=false;
+    public bool OnlySuffleOnce = false;
 
     [SerializeField]
     GameObject voxelVixibleOdd;
@@ -290,17 +291,10 @@ public class Game : MonoBehaviour {
 
         if (!DebugSuffle)
         {
-            while (true)
-            {
-                Debug.Log("開始洗牌");
-                BeforeShuffle();
-                var ok = Shuffle();
-                if (ok)
-                {
-                    Debug.Log("Shuffle Finish");
-                    break;
-                }
-            }
+            if (OnlySuffleOnce)
+                SuffleOnce();
+            else
+                TillSuffleFinish();
         }
         else
         {
@@ -308,6 +302,27 @@ public class Game : MonoBehaviour {
             BeforeShuffle();
         }
             
+    }
+
+    void TillSuffleFinish()
+    {
+        while (true)
+        {
+            if (SuffleOnce())
+                break;
+        }
+    }
+
+    bool SuffleOnce()
+    {
+        Debug.Log("開始洗牌");
+        BeforeShuffle();
+        var ok = Shuffle();
+        if (ok)
+        {
+            Debug.Log("Shuffle Finish");
+        }
+        return ok;
     }
 
     void Start()
