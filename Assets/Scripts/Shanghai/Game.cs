@@ -26,7 +26,8 @@ public class Game : MonoBehaviour {
         return shufflingList[index];
     }
 
-    Group GetRandomGroupInSufflingListHasOutputArrowFirst()
+    //取得shufflingList裡有outputArrow的group，再用深度排序後，傳回最最前段班
+    List<Group> OutputArrowFirst()
     {
         var outputArrowList = new List<Group>();
         foreach (var g in shufflingList)
@@ -34,9 +35,9 @@ public class Game : MonoBehaviour {
                 outputArrowList.Add(g);
 
         if (outputArrowList.Count == 0)
-            return GetRandomGroupInSufflingList();
+            return null;
 
-        //由小到大
+        //深度由小到大
         outputArrowList.Sort((a, b) => {
             if (a.depth < b.depth)
                 return -1;
@@ -44,6 +45,7 @@ public class Game : MonoBehaviour {
                 return 1;
         });
 
+        //取出最前面的那一段
         var Count = 1;
         var depth = outputArrowList[0].depth;
         for (var i = 1; i < outputArrowList.Count; ++i)
@@ -53,9 +55,18 @@ public class Game : MonoBehaviour {
             else
                 break;
         }
+        return outputArrowList.GetRange(0,Count);
+    }
 
-        int index = Random.Range(0, Count);
-        var nowGroup = outputArrowList[index];
+    Group GetRandomGroupInSufflingListWithConstraint()
+    {
+        var list = OutputArrowFirst();
+        if(list==null)
+            return GetRandomGroupInSufflingList();
+
+
+        int index = Random.Range(0, list.Count);
+        var nowGroup = list[index];
         return nowGroup;
     }
 
@@ -120,8 +131,10 @@ public class Game : MonoBehaviour {
         while (true)
         {
             ++i;
-            if (i > 1000)
+            if (i > 20)
             {
+                //這種case
+                //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipN9U3yuo-xD9aemcdLvTsj7rza8-csfurpH5qgt?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
                 Debug.Log("出不去");
                 return null;
             }
@@ -145,7 +158,7 @@ public class Game : MonoBehaviour {
         //(2)從ShufflingList裡隨機挑出2個group
         //為了避免這種case
         //https://photos.google.com/share/AF1QipOBIcPnUrycdqIu3uWtm2fF2xS9CTYLqKd62yZG89l_9G5ShEIrZdYCAumpJTCkOQ/photo/AF1QipM49GnYdlrx7vOzpi68JuSV3NKFSVh6OwjfELcq?key=UEVQZEpLT3NLMjhXRklQNUp3N1Q5dHM0QXVNd3pB
-        var g1 = GetRandomGroupInSufflingListHasOutputArrowFirst();
+        var g1 = GetRandomGroupInSufflingListWithConstraint();
         var e1 = PickElementInGroup(g1);
         AfterPickElement(g1);
 
@@ -231,6 +244,7 @@ public class Game : MonoBehaviour {
         }
         else
         {
+            Debug.Log("開始洗牌");
             BeforeShuffle();
         }
             
