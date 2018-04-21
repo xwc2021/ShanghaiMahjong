@@ -31,7 +31,7 @@ public class Game : MonoBehaviour {
     }
 
     //取得shufflingList裡有outputArrow的group，再用深度排序後，傳回最最前段班
-    List<Group> OutputArrowOrderByDepthFilter(List<Group> source)
+    List<Group> GetOutputArrowOrderByDepthFilter(List<Group> source)
     {
         var list = new List<Group>();
         foreach (var g in source)
@@ -51,6 +51,11 @@ public class Game : MonoBehaviour {
         //DebugList(list, "depth排序後", GetGroupDepth);
         //取出最前面的那一段
         return GetFirstSegment(list, list[0].depth, GetGroupDepth);
+    }
+
+    List<Group> GetDownToUpLinkOrderByDepthFilter(List<Group> source)
+    {
+        return source;
     }
 
     delegate int GetGroupField(Group group);
@@ -119,11 +124,15 @@ public class Game : MonoBehaviour {
     {
         var list = shufflingList;
 
+        //有OutputArrow優先
+        list = GetOutputArrowOrderByDepthFilter(list);//找不到會回傳shufflingList
+
+        //有donwToUpLink優先
+        if (list == shufflingList)
+            GetDownToUpLinkOrderByDepthFilter(list);
+
         //低樓層優先
         list = OrderByFloorFilter(list);
-
-        //有OutputArrow優先
-        list = OutputArrowOrderByDepthFilter(list);
 
         //空位置多的優先
         list = OrderByNotUseCountFilter(list);
