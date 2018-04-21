@@ -208,11 +208,45 @@ public class RelationManager {
     public bool HasInputArrow(Group group) { return inputArrows.ContainsKey(group); }
     public bool HasOutputArrow(Group group) { return outputArrows.ContainsKey(group); }
 
-    int depth;
-    public void InjectGroupDepth() {
-        depth = 0;
-        //取出所有的outputArrows
+    Dictionary<Element, List<Element>> outputArrowsDownToUp;
 
+    int downToUpArrowDepth;
+    public void InjectDownToUpLinkDepth()
+    {
+        downToUpArrowDepth = 0;
+        for (var i = 0; i < downToUpLinks.Count; ++i)
+        {
+            var relation = downToUpLinks[i];
+            var waiting =relation.GetWaiting();
+            InjectDownToUpLinkDepth(waiting);
+        }
+    }
+
+    void InjectDownToUpLinkDepth(Element now)
+    {
+        ++downToUpArrowDepth;
+        var g = now.group;
+        if (downToUpArrowDepth > g.downToUpArrowDepth)
+        {
+            g.downToUpArrowDepth = downToUpArrowDepth;
+            if (outputArrowsDownToUp.ContainsKey(now))
+            {
+                var list = outputArrowsDownToUp[now];
+                for (var i = 0; i < list.Count; ++i)
+                {
+                    var e = list[i];
+                    InjectDownToUpLinkDepth(e);
+                }
+            }
+        }
+        --downToUpArrowDepth;
+    }
+
+    int depth;
+    public void InjectOutputArrowDepth() {
+        depth = 0;
+
+        //取出所有的outputArrows
         var enumerator = outputArrows.GetEnumerator();
         while (enumerator.MoveNext())
         {
@@ -220,12 +254,12 @@ public class RelationManager {
             for (var i = 0; i < groupRelations.Count; ++i)
             {
                 var g = groupRelations[i].GetWaiting();
-                InjectGroupDepth(g);
+                InjectOutputArrowDepth(g);
             }
         }
     }
 
-    void InjectGroupDepth(Group g)
+    void InjectOutputArrowDepth(Group g)
     {
         ++depth;
         if (depth > g.depth)
@@ -237,7 +271,7 @@ public class RelationManager {
                 for (var i = 0; i < links.Count; ++i)
                 {
                     var waitGroup =links[i].GetWaiting();
-                    InjectGroupDepth(waitGroup);
+                    InjectOutputArrowDepth(waitGroup);
                 }
             }
         }
@@ -261,8 +295,9 @@ public class RelationManager {
         }
     }
 
-    public void BuildGroupDependenceSearchHelper()
+    public void BuildArrowDependenceSearchHelper()
     {
+        //同一層的arrows
         outputArrows = new Dictionary<Group, List<GroupRelation>>();
         inputArrows = new Dictionary<Group, List<GroupRelation>>();
 
@@ -272,12 +307,31 @@ public class RelationManager {
             FillDictionary(trigger, relation, outputArrows);
             FillDictionary(waiting, relation, inputArrows);
         }
-       
-        Debug.Log("BuildGroupDependenceSearchHelper");
+
+        //上下層的arrows
+        outputArrowsDownToUp = new Dictionary<Element, List<Element>>();
+        foreach (var relation in downToUpLinks) {
+            var trigger = relation.GetTrigger();
+            var waiting = relation.GetWaiting();
+
+            if (!outputArrowsDownToUp.ContainsKey(trigger))
+            {
+                var list = new List<Element>();
+                list.Add(waiting);
+                outputArrowsDownToUp.Add(trigger, list);
+            }
+            else
+            {
+                var list = outputArrowsDownToUp[trigger];
+                list.Add(waiting);
+            }
+        }
+
+        Debug.Log("BuildArrowDependenceSearchHelper");
     }
 
     public void ReverseInputArrow(Group group) {
-        BuildGroupDependenceSearchHelper();
+        BuildArrowDependenceSearchHelper();
         if (!inputArrows.ContainsKey(group))
         {
             Debug.Log("Can not find input arrow");
@@ -293,7 +347,7 @@ public class RelationManager {
 
     public void ReverseInputArrows(Group group)
     {
-        BuildGroupDependenceSearchHelper();
+        BuildArrowDependenceSearchHelper();
         if (!inputArrows.ContainsKey(group))
         {
             Debug.Log("Can not find input arrow");
@@ -431,7 +485,7 @@ public class GroupRelationBuilder : MonoBehaviour {
 
     public void BuildForGame()
     {
-        relationManager.BuildGroupDependenceSearchHelper();//這個無法記在Unity裡
+        relationManager.BuildArrowDependenceSearchHelper();//這個無法記在Unity裡
         BuildElementDependence();
         foreach (var g in groups.GetList())
         {
@@ -439,14 +493,22 @@ public class GroupRelationBuilder : MonoBehaviour {
             g.hasInputArrow =relationManager.HasInputArrow(g);
             g.hasOutputArrow = relationManager.HasOutputArrow(g);
         }
-        InjectGroupDepth();
+        InjectOutputArrowDepth();
+        InjectDownToUpLinkDepth();
     }
 
-    void InjectGroupDepth()
+    void InjectDownToUpLinkDepth()
+    {
+        foreach (var g in groups.GetList())
+            g.downToUpArrowDepth = 0;
+        relationManager.InjectDownToUpLinkDepth();
+    }
+
+    void InjectOutputArrowDepth()
     {
         foreach (var g in groups.GetList())
             g.depth = 0;
-        relationManager.InjectGroupDepth();
+        relationManager.InjectOutputArrowDepth();
     }
 
     public void BeforeShuffle()

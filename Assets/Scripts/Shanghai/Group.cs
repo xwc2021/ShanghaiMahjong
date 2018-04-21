@@ -123,6 +123,8 @@ public class Group : MonoBehaviour
     //G1的Dpeth就是2
     public int depth;
 
+    public int downToUpArrowDepth;
+
     public void BeforeShuffle()
     {
         isInSuffleList = false;

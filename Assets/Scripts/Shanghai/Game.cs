@@ -55,12 +55,31 @@ public class Game : MonoBehaviour {
 
     List<Group> GetDownToUpLinkOrderByDepthFilter(List<Group> source)
     {
-        return source;
+        var list = new List<Group>();
+        foreach (var g in source)
+            if (g.hasFloorLink)
+                list.Add(g);
+
+        if (list.Count == 0)
+            return source;
+
+        //DebugList(list, "downToUpArrowDepth排序前", GetGroupDownToUpArrowDepth);
+        //深度由小到大
+        list.Sort((a, b) => {
+            if (a.downToUpArrowDepth < b.downToUpArrowDepth)
+                return -1;
+            else
+                return 1;
+        });
+        //DebugList(list, "downToUpArrowDepth排序後", GetGroupDownToUpArrowDepth);
+
+        return GetFirstSegment(list, list[0].downToUpArrowDepth, GetGroupDownToUpArrowDepth);
     }
 
     delegate int GetGroupField(Group group);
     int GetGroupFloor(Group group) { return group.floor; }
     int GetGroupDepth(Group group) { return group.depth; }
+    int GetGroupDownToUpArrowDepth(Group group) { return group.downToUpArrowDepth; }
     int GetGroupShuffeNotUseCount(Group group) { return group.GetShuffeNotUseCount(); }
 
     List<Group> GetFirstSegment(List<Group> list,int value, GetGroupField funptr)
